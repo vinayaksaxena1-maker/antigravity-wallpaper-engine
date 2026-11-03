@@ -20,34 +20,77 @@
   let images = [];
   let currentImageId = '';
   let prefs = { activeId: '', opacity: 85, scale: 100, enabled: true };
-  const imageCache = new Map(); // id -> HTMLImageElement
+  const imageCache = new Map();
 
   let sheet = null, canvas = null, ctx = null;
   let host = null, shadow = null, panelOpen = false;
 
   function injectStyles() {
-    if (document.getElementById('agy-wallpaper-style')) return;
-    const style = document.createElement('style');
-    style.id = 'agy-wallpaper-style';
+    let style = document.getElementById('agy-wallpaper-style');
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'agy-wallpaper-style';
+      document.head.append(style);
+    }
+    const tokens = {
+      background: '#0a0d14',
+      foreground: '#f0f3fa',
+      secondary: '#161d2c',
+      'secondary-foreground': '#9aa5b8',
+      muted: '#161d2c',
+      'muted-foreground': '#9aa5b8',
+      card: '#161d2c',
+      'card-border': '#2a354c',
+      border: '#2a354c',
+      sidebar: '#0a0d14',
+      'sidebar-muted': '#161d2c',
+      'sidebar-secondary': '#0e121c',
+      primary: '#64a0f0',
+      'primary-foreground': '#f0f3fa',
+      'cta-foreground': '#ffffff',
+      popover: '#0e121c',
+      'popover-foreground': '#f0f3fa',
+      accent: '#161d2c',
+      'accent-foreground': '#f0f3fa',
+      input: '#2a354c',
+      ring: '#64a0f0'
+    };
+    const declarations = Object.entries(tokens).flatMap(([k, v]) => [`--${k}:${v}!important`, `--color-${k}:${v}!important`]).join(';');
+    const editor = `--editor-code-block-background:#0e121c!important;--code-foreground:#e7c59e!important;--editor-selection-background:#538da52e!important;--color-selection-background:#538da52e!important;--glass-border:#2a354c!important;--focus-ring-color:#64a0f0!important;--editor-line-number-foreground:#9aa5b8!important;--color-editorLineNumber-foreground:#9aa5b8!important;`;
+
     style.textContent = `
-      body[data-custom-wallpaper] .agy-sheet {
-        isolation: isolate !important;
-        background: transparent !important;
+      body[data-custom-wallpaper],
+      body[data-custom-wallpaper] #root .dark,
+      body[data-custom-wallpaper] #root .light,
+      body[data-custom-wallpaper] .agy-shell {
+        ${declarations};
+        ${editor}
+        color-scheme: dark !important;
+        color: #f0f3fa !important;
       }
       body[data-custom-wallpaper] .agy-shell {
-        background: rgba(10, 14, 22, 0.65) !important;
-        --sidebar: rgba(12, 16, 26, 0.72) !important;
-        --sidebar-secondary: rgba(16, 22, 36, 0.6) !important;
-        --popover: rgba(14, 18, 30, 0.8) !important;
-        --card: rgba(18, 24, 38, 0.65) !important;
-        --border: rgba(255, 255, 255, 0.08) !important;
-        --foreground: #eef2fa !important;
-        backdrop-filter: blur(14px) !important;
+        background: #0a0d14 !important;
+        --max-conversation-width: min(60rem, 50vw) !important;
+      }
+      @media (max-width: 900px) {
+        body[data-custom-wallpaper] .agy-shell {
+          --max-conversation-width: 100% !important;
+        }
+      }
+      body[data-custom-wallpaper] .agy-sheet {
+        isolation: isolate !important;
+        background: #0a0d14 !important;
+        text-shadow: 0 0 2px #0a0d14, 0 0 6px #0a0d14, 0 0 12px #0a0d14 !important;
       }
       body[data-custom-wallpaper] .surface-composer {
-        background: rgba(20, 28, 44, 0.7) !important;
-        backdrop-filter: blur(12px) !important;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;
+        background: color-mix(in srgb, #2a354c 60%, transparent) !important;
+        box-shadow: 0 10px 26px rgba(0,0,0,0.2) !important;
+      }
+      body[data-custom-wallpaper] .surface-composer-card {
+        background: color-mix(in srgb, #161d2c 92%, transparent) !important;
+      }
+      body[data-custom-wallpaper] .agy-sidebar-row {
+        --row-bg: #0a0d14 !important;
       }
       body[data-custom-wallpaper] .md-sticky-message-bleed,
       body[data-custom-wallpaper] .md-sticky-message-bleed::before,
@@ -58,7 +101,6 @@
         background-image: none !important;
       }
     `;
-    document.head.append(style);
   }
 
   function getImgElement(item) {
@@ -102,7 +144,7 @@
     const current = images.find(img => img.id === currentImageId) || images[0];
     if (current) {
       const img = getImgElement(current);
-      drawCover(ctx, img, canvas.width, canvas.height, prefs.opacity / 100, prefs.scale / 100);
+      drawCover(ctx, img, canvas.width, canvas.height, 0.15 + 0.85 * (prefs.opacity / 100), (prefs.scale || 100) / 100);
     }
   }
 
@@ -185,8 +227,37 @@
       const draw = () => drawCover(thumb.getContext('2d'), img, 160, 100, 1.0, 1.0);
       if (img.complete) draw(); else img.onload = draw;
 
-      btn.addEventListener('click', () => selectWallpaper(item.id));
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectWallpaper(item.id);
+      });
       container.append(btn);
+    }
+  }
+
+  function positionTrigger() {
+    if (!shadow) return;
+    const trigger = shadow.querySelector('.trigger');
+    if (!trigger) return;
+    const candidates = document.querySelectorAll('button, a, [role="button"], div');
+    let anchor = null;
+    for (const el of candidates) {
+      if (/Open\s+IDE/i.test(el.textContent || '') && (el.textContent || '').trim().length < 30) {
+        const r = el.getBoundingClientRect();
+        if (r.top >= 0 && r.top < 60 && r.left > 50 && r.width > 10 && r.height > 10) {
+          anchor = el.closest('button, a, [role="button"]') || el;
+          break;
+        }
+      }
+    }
+    if (anchor) {
+      const r = anchor.getBoundingClientRect();
+      trigger.style.right = Math.round(window.innerWidth - r.left + 8) + 'px';
+      const targetTop = Math.round(r.top + (r.height - 25) / 2);
+      if (targetTop >= 0 && targetTop < 40) trigger.style.top = targetTop + 'px';
+    } else {
+      trigger.style.right = '160px';
+      trigger.style.top = '5px';
     }
   }
 
@@ -199,50 +270,105 @@
 
     const style = document.createElement('style');
     style.textContent = `
-      :host { all: initial; font-family: system-ui, -apple-system, Segoe UI, sans-serif; }
+      :host {
+        all: initial;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 0;
+        z-index: 2147483000;
+        pointer-events: none;
+        font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      }
+      * { box-sizing: border-box; }
       .trigger {
-        position: fixed; top: 6px; right: 160px; z-index: 2147483000;
-        display: flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px;
-        background: rgba(25, 32, 48, 0.85); color: #eef2fa; border: 1px solid rgba(255,255,255,0.12);
-        border-radius: 6px; font-size: 11px; cursor: pointer; backdrop-filter: blur(8px);
+        position: fixed;
+        top: 5px;
+        right: 160px;
+        z-index: 2147483000;
+        pointer-events: auto !important;
+        -webkit-app-region: no-drag !important;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: 25px;
+        padding: 0 10px;
+        background: rgba(22, 28, 44, 0.9);
+        color: #f0f3fa;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 5px;
+        font-size: 11px;
+        cursor: pointer;
+        backdrop-filter: blur(8px);
         transition: background 0.15s;
       }
       .trigger:hover { background: rgba(35, 46, 68, 0.95); }
       .panel {
-        position: fixed; top: 40px; right: 160px; z-index: 2147483000; width: 340px;
-        background: rgba(14, 18, 28, 0.94); color: #eef2fa; border: 1px solid rgba(255,255,255,0.14);
-        border-radius: 10px; padding: 12px; box-shadow: 0 12px 36px rgba(0,0,0,0.5);
-        backdrop-filter: blur(16px); display: flex; flex-direction: column; gap: 10px;
+        position: fixed;
+        top: 40px;
+        right: 160px;
+        z-index: 2147483000;
+        width: 320px;
+        pointer-events: auto !important;
+        -webkit-app-region: no-drag !important;
+        background: rgba(14, 18, 28, 0.96);
+        color: #f0f3fa;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+        padding: 12px;
+        box-shadow: 0 12px 36px rgba(0,0,0,0.6);
+        backdrop-filter: blur(16px);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
       }
       .panel[hidden] { display: none !important; }
       .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; }
-      .title { font-size: 12px; font-weight: 600; }
+      .title { font-size: 12px; font-weight: 600; color: #f0f3fa; }
       .btn-group { display: flex; gap: 6px; }
       .btn {
-        background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
-        color: #eef2fa; border-radius: 5px; padding: 3px 8px; font-size: 11px; cursor: pointer;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.12);
+        color: #f0f3fa;
+        border-radius: 4px;
+        padding: 3px 8px;
+        font-size: 11px;
+        cursor: pointer;
+        transition: background 0.15s;
       }
-      .btn:hover { background: rgba(255,255,255,0.15); }
-      .btn-add { background: #2f68e0; border-color: #437bf0; }
-      .btn-add:hover { background: #3d76ee; }
-      .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-height: 200px; overflow-y: auto; }
+      .btn:hover { background: rgba(255,255,255,0.18); }
+      .btn-add { background: #2b6cb0; border-color: #3182ce; font-weight: 500; }
+      .btn-add:hover { background: #3182ce; }
+      .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-height: 180px; overflow-y: auto; padding: 2px; }
       .choice {
-        background: none; border: 2px solid transparent; border-radius: 6px; padding: 0;
-        cursor: pointer; aspect-ratio: 16/10; overflow: hidden; outline: none;
+        background: none;
+        border: 2px solid transparent;
+        border-radius: 6px;
+        padding: 0;
+        cursor: pointer;
+        aspect-ratio: 16/10;
+        overflow: hidden;
+        outline: none;
       }
-      .choice[aria-pressed=true] { border-color: #437bf0; box-shadow: 0 0 0 1px #437bf0; }
+      .choice:hover { border-color: rgba(255,255,255,0.4); }
+      .choice[aria-pressed=true] { border-color: #64a0f0; box-shadow: 0 0 0 1px #64a0f0; }
       .choice canvas { width: 100%; height: 100%; display: block; object-fit: cover; }
       .sliders { display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #a0aec0; }
       .slider-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-      .slider-row input { flex: 1; accent-color: #437bf0; cursor: pointer; }
-      .val-text { min-width: 32px; text-align: right; }
+      .slider-row input { flex: 1; accent-color: #64a0f0; cursor: pointer; }
+      .val-text { min-width: 32px; text-align: right; font-variant-numeric: tabular-nums; }
     `;
     shadow.append(style);
 
     const trigger = document.createElement('button');
     trigger.className = 'trigger';
     trigger.innerHTML = '🖼️ <span>Wallpapers</span>';
-    trigger.addEventListener('click', () => togglePanel(!panelOpen));
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      togglePanel(!panelOpen);
+    });
 
     const panel = document.createElement('div');
     panel.className = 'panel';
@@ -266,21 +392,27 @@
         </div>
         <div class="slider-row">
           <span>Size</span>
-          <input type="range" class="range-scale" min="25" max="250" step="5" value="${prefs.scale}">
-          <span class="val-text val-scale">${prefs.scale}%</span>
+          <input type="range" class="range-scale" min="25" max="250" step="5" value="${prefs.scale || 100}">
+          <span class="val-text val-scale">${prefs.scale || 100}%</span>
         </div>
       </div>
     `;
 
     shadow.append(trigger, panel);
 
-    panel.querySelector('.btn-close').addEventListener('click', () => togglePanel(false));
-    panel.querySelector('.btn-off').addEventListener('click', () => {
+    panel.querySelector('.btn-close').addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePanel(false);
+    });
+
+    panel.querySelector('.btn-off').addEventListener('click', (e) => {
+      e.stopPropagation();
       prefs.enabled = false;
       applyWallpaperState();
     });
 
-    panel.querySelector('.btn-add').addEventListener('click', async () => {
+    panel.querySelector('.btn-add').addEventListener('click', async (e) => {
+      e.stopPropagation();
       const picked = await api.pickImage();
       if (!picked) return;
       images.unshift({ id: picked.id, name: picked.name, file: picked.file, ext: 'jpg' });
@@ -326,13 +458,24 @@
     });
 
     updateThumbnails();
+    positionTrigger();
   }
 
   function togglePanel(open) {
     panelOpen = open;
     if (shadow) {
       const panel = shadow.querySelector('.panel');
-      if (panel) panel.hidden = !panelOpen;
+      if (panel) {
+        panel.hidden = !panelOpen;
+        if (panelOpen) {
+          const trigger = shadow.querySelector('.trigger');
+          if (trigger) {
+            const r = trigger.getBoundingClientRect();
+            panel.style.top = (r.bottom + 6) + 'px';
+            panel.style.right = Math.max(16, window.innerWidth - r.right) + 'px';
+          }
+        }
+      }
     }
   }
 
@@ -353,7 +496,15 @@
     mountCanvas();
     applyWallpaperState();
 
-    new MutationObserver(() => mountCanvas()).observe(document.body, { childList: true, subtree: true });
+    new MutationObserver(() => {
+      mountCanvas();
+      positionTrigger();
+    }).observe(document.body, { childList: true, subtree: true });
+
+    window.addEventListener('resize', () => {
+      positionTrigger();
+      resizeCanvas();
+    });
   }
 
   if (document.readyState === 'loading') {
