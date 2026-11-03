@@ -196,7 +196,10 @@
     const fgColor = isLight ? '#0f172a' : '#f0f3fa';
     const textGlow = isLight
       ? '0 0 2px #ffffff, 0 0 6px #ffffff, 0 0 12px #ffffff'
-      : '0 0 2px #0a0d14, 0 0 6px #0a0d14, 0 0 12px #0a0d14';
+      : '0 1px 2px rgba(0,0,0,0.95), 0 0 6px rgba(10,13,20,0.85), 0 0 14px rgba(10,13,20,0.75)';
+    const sheetBackground = isLight
+      ? 'radial-gradient(ellipse at center, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.20) 70%, transparent 100%)'
+      : 'radial-gradient(ellipse at center, rgba(10, 13, 20, 0.50) 0%, rgba(10, 13, 20, 0.25) 70%, transparent 100%)';
     const composerBg = isLight
       ? 'color-mix(in srgb, #ffffff 88%, transparent)'
       : 'color-mix(in srgb, #2a354c 60%, transparent)';
@@ -227,7 +230,7 @@
       }
       body[data-custom-wallpaper] .agy-sheet {
         isolation: isolate !important;
-        background: transparent !important;
+        background: ${sheetBackground} !important;
         text-shadow: ${textGlow} !important;
         color: ${fgColor} !important;
       }
@@ -318,10 +321,11 @@
     return img;
   }
 
-  function drawCover(targetCtx, img, w, h, opacity = 0.85, scale = 1.0) {
+  function drawCover(targetCtx, img, w, h, opacity = 0.85, scale = 1.0, isLight = false) {
     if (!targetCtx || !img || !img.complete || !img.naturalWidth) return;
     targetCtx.save();
-    targetCtx.clearRect(0, 0, w, h);
+    targetCtx.fillStyle = isLight ? '#f1f5f9' : '#0a0d14';
+    targetCtx.fillRect(0, 0, w, h);
     targetCtx.globalAlpha = opacity;
     const imgRatio = img.naturalWidth / img.naturalHeight;
     const canvasRatio = w / h;
@@ -345,7 +349,8 @@
     const current = images.find(img => img.id === currentImageId) || images[0];
     if (current) {
       const img = getImgElement(current);
-      drawCover(ctx, img, canvas.width, canvas.height, 0.15 + 0.85 * (prefs.opacity / 100), (prefs.scale || 100) / 100);
+      const isLight = resolveIsLight();
+      drawCover(ctx, img, canvas.width, canvas.height, 0.15 + 0.85 * (prefs.opacity / 100), (prefs.scale || 100) / 100, isLight);
     }
   }
 
