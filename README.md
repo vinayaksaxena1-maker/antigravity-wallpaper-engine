@@ -11,7 +11,7 @@
 
 <br/>
 
-<img src="assets/preview.png" alt="Antigravity Wallpaper Engine Preview" width="850" style="border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,0.6);" />
+<img src="assets/hero-preview.png" alt="Antigravity Wallpaper Engine Preview" width="850" style="border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,0.6);" />
 
 <br/>
 
