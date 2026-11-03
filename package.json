@@ -1,0 +1,30 @@
+{
+  "name": "antigravity-wallpaper-engine",
+  "version": "1.0.0",
+  "description": "Ultra-lightweight, high-performance custom wallpaper engine with frosted glass glassmorphism for Google Antigravity desktop IDE.",
+  "main": "src/installer.cjs",
+  "scripts": {
+    "install-engine": "node src/installer.cjs install",
+    "restore": "node src/installer.cjs restore"
+  },
+  "keywords": [
+    "antigravity",
+    "wallpaper",
+    "wallpaper-engine",
+    "electron",
+    "customization",
+    "glassmorphism",
+    "themes",
+    "ide-themes"
+  ],
+  "author": "Vinayak Saxena <vinayaksaxena1@gmail.com> (https://github.com/vinayaksaxena1-maker)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vinayaksaxena1-maker/antigravity-wallpaper-engine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vinayaksaxena1-maker/antigravity-wallpaper-engine/issues"
+  },
+  "homepage": "https://github.com/vinayaksaxena1-maker/antigravity-wallpaper-engine#readme"
+}
