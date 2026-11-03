@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Antigravity Wallpaper Engine - Instagram Reel</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 0;
+        background: #07090e;
+        color: #ffffff;
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: radial-gradient(circle at 50% 30%, #151d2f 0%, #06080d 100%);
+      }
+      .clip {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 48px;
+        text-align: center;
+      }
+
+      /* Glow & accents */
+      .ambient-glow {
+        position: absolute;
+        width: 650px;
+        height: 650px;
+        border-radius: 50%;
+        filter: blur(140px);
+        opacity: 0.35;
+        pointer-events: none;
+      }
+      .glow-blue { background: #3b82f6; top: 15%; left: 10%; }
+      .glow-purple { background: #a855f7; bottom: 15%; right: 10%; }
+      .glow-amber { background: #f59e0b; top: 40%; left: 30%; }
+
+      /* Typography */
+      .badge-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 28px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        backdrop-filter: blur(12px);
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #60a5fa;
+        margin-bottom: 24px;
+      }
+      .headline {
+        font-size: 68px;
+        font-weight: 900;
+        line-height: 1.12;
+        letter-spacing: -0.03em;
+        margin: 0 0 24px 0;
+      }
+      .headline span.gradient {
+        background: linear-gradient(135deg, #60a5fa 0%, #c084fc 50%, #f472b6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .headline span.warning {
+        background: linear-gradient(135deg, #f87171 0%, #fb923c 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .subtext {
+        font-size: 32px;
+        font-weight: 500;
+        line-height: 1.45;
+        color: #94a3b8;
+        max-width: 840px;
+        margin: 0 auto;
+      }
+
+      /* Mock IDE & Windows */
+      .window-card {
+        position: relative;
+        width: 100%;
+        max-width: 980px;
+        background: rgba(15, 20, 32, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 32px 80px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.08);
+        margin-top: 36px;
+      }
+      .window-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        background: rgba(255, 255, 255, 0.04);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .window-dots {
+        display: flex;
+        gap: 10px;
+      }
+      .dot { width: 14px; height: 14px; border-radius: 50%; }
+      .dot-red { background: #ef4444; }
+      .dot-yellow { background: #f59e0b; }
+      .dot-green { background: #10b981; }
+      .window-title {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 20px;
+        color: #94a3b8;
+      }
+
+      /* Image Frame */
+      .frame-media {
+        width: 100%;
+        height: 620px;
+        object-fit: cover;
+        display: block;
+      }
+
+      /* Pill Chips */
+      .code-pill {
+        display: inline-block;
+        font-family: 'JetBrains Mono', monospace;
+        background: rgba(10, 14, 22, 0.92);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 4px 14px;
+        font-size: 22px;
+        font-weight: 600;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      }
+
+      /* Feature Matrix */
+      .features-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        width: 100%;
+        max-width: 920px;
+        margin-top: 32px;
+      }
+      .feature-box {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 24px 30px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 20px;
+        backdrop-filter: blur(20px);
+        text-align: left;
+      }
+      .feature-icon {
+        font-size: 48px;
+        width: 72px;
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .feature-text h3 {
+        margin: 0 0 6px 0;
+        font-size: 30px;
+        font-weight: 800;
+        color: #f8fafc;
+      }
+      .feature-text p {
+        margin: 0;
+        font-size: 22px;
+        color: #94a3b8;
+      }
+
+      /* Call to action */
+      .cta-card {
+        padding: 36px 40px;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.25) 0%, rgba(147, 51, 234, 0.2) 100%);
+        border: 2px solid rgba(96, 165, 250, 0.4);
+        border-radius: 28px;
+        box-shadow: 0 24px 60px rgba(37, 99, 235, 0.35);
+        margin-top: 32px;
+        width: 100%;
+        max-width: 940px;
+      }
+      .github-star-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+        background: #ffffff;
+        color: #0f172a;
+        font-size: 32px;
+        font-weight: 800;
+        padding: 18px 44px;
+        border-radius: 999px;
+        box-shadow: 0 10px 30px rgba(255, 255, 255, 0.3);
+        margin-top: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-width="1080"
+      data-height="1920"
+      data-duration="30"
+    >
+      <!-- Audio Track: Studio Hinglish Voiceover (Gemini 3.8 Flash TTS) + Upbeat Cyber BGM -->
+      <audio id="voiceover" src="assets/audio-mix.wav" data-start="0.1" data-duration="29.8"></audio>
+
+      <div class="ambient-glow glow-blue"></div>
+      <div class="ambient-glow glow-purple"></div>
+      <div class="ambient-glow glow-amber"></div>
+
+      <!-- SCENE 1: THE HOOK (0s - 5.8s) -->
+      <section id="scene-hook" class="clip" data-start="0" data-duration="5.8">
+        <div class="badge-tag" id="tag-hook">⚠️ Developer Alert</div>
+        <h1 class="headline" id="title-hook">
+          8 Hours A Day.<br />
+          <span class="warning">Same Boring IDE?</span>
+        </h1>
+        <p class="subtext" id="desc-hook">
+          99% of developers stare at a lifeless, sterile dark screen. It's time to upgrade your daily coding flow.
+        </p>
+
+        <div class="window-card" id="card-boring" style="overflow: hidden;">
+          <div class="window-header">
+            <div class="window-dots">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+            </div>
+            <div class="window-title">stock-antigravity.exe (Default Sterile White)</div>
+            <div class="code-pill" style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444;">DULL &amp; BORING</div>
+          </div>
+          <img src="assets/real-ide-boring-white.png" class="frame-media" alt="Default Stock Antigravity" style="width: 100%; height: 620px; object-fit: cover; object-position: center; display: block;" />
+        </div>
+      </section>
+
+      <!-- SCENE 2: REAL DESKTOP REVEAL (5.8s - 14s) -->
+      <section id="scene-reveal" class="clip" data-start="5.8" data-duration="8.2">
+        <div class="badge-tag" id="tag-reveal">🚀 Real Software · Live Running</div>
+        <h1 class="headline" id="title-reveal">
+          Turn Your IDE Into A<br />
+          <span class="gradient">Cyberpunk Masterpiece</span>
+        </h1>
+        <p class="subtext" id="desc-reveal">
+          Meet <strong>Antigravity Wallpaper Engine</strong>. Full-window live wallpapers with dynamic frosted glass.
+        </p>
+
+        <div class="window-card" id="card-samurai" style="position: relative; overflow: hidden; height: 680px; width: 100%;">
+          <div class="window-header" style="position: relative; z-index: 10; background: rgba(13, 17, 26, 0.95);">
+            <div class="window-dots">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+            </div>
+            <div class="window-title" id="theme-window-title">Antigravity · Cyberpunk HUD</div>
+            <div class="code-pill">🖼️ Wallpapers: LIVE</div>
+          </div>
+          <!-- Wallpaper 1: Iron Man Cyberpunk -->
+          <img src="assets/real-ide-ironman.png" id="wp-ironman" class="frame-media" style="position: absolute; top: 58px; left: 0; width: 100%; height: 622px; object-fit: cover;" alt="Iron Man Antigravity Setup" />
+          <!-- Wallpaper 2: Futuristic AI Cyborg -->
+          <img src="assets/real-ide-aicborg.jpg" id="wp-aicborg" class="frame-media" style="position: absolute; top: 58px; left: 0; width: 100%; height: 622px; object-fit: cover; opacity: 0;" alt="AI Cyborg Antigravity Setup" />
+          <!-- Wallpaper 3: Transformers Bumblebee -->
+          <img src="assets/real-ide-bumblebee.png" id="wp-bumblebee" class="frame-media" style="position: absolute; top: 58px; left: 0; width: 100%; height: 622px; object-fit: cover; opacity: 0;" alt="Transformers Antigravity Setup" />
+          <!-- Wallpaper 4: Samurai Dusk -->
+          <img src="assets/real-ide-clean.jpg" id="wp-samurai" class="frame-media" style="position: absolute; top: 58px; left: 0; width: 100%; height: 622px; object-fit: cover; opacity: 0;" alt="Samurai Antigravity Setup" />
+        </div>
+      </section>
+
+      <!-- SCENE 3: ADAPTIVE FEATURES & REAL CHAT PILLS (14s - 21s) -->
+      <section id="scene-features" class="clip" data-start="14" data-duration="7">
+        <div class="badge-tag" id="tag-features">⚡ Intelligent Engine</div>
+        <h1 class="headline" id="title-features" style="margin-bottom: 14px;">
+          Deep Black Badges.<br />
+          <span class="gradient">Zero Lag &amp; High Contrast.</span>
+        </h1>
+
+        <!-- Live Screenshot of Iron Man with active chat & badges -->
+        <div class="window-card" id="card-feature-shot" style="margin-top: 10px; max-height: 520px; overflow: hidden; width: 100%;">
+          <div class="window-header">
+            <div class="window-dots">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+            </div>
+            <div class="window-title">Antigravity · Active Chat &amp; Glass Badges</div>
+            <div class="code-pill">⚡ 0% Idle Lag</div>
+          </div>
+          <img src="assets/real-ide-ironman-chat.png" style="width: 100%; height: 460px; object-fit: cover; object-position: center; display: block;" alt="Antigravity Live Chat and Badges" />
+        </div>
+
+        <div class="features-grid" id="grid-features" style="margin-top: 22px; gap: 14px;">
+          <div class="feature-box" style="padding: 16px 24px;">
+            <div class="feature-icon" style="font-size: 34px; width: 54px; height: 54px;">🛡️</div>
+            <div class="feature-text">
+              <h3 style="font-size: 26px;">Deep Black Glass Badges</h3>
+              <p style="font-size: 20px;">Pure white text on dark acrylic. High readability, zero eye strain.</p>
+            </div>
+          </div>
+
+          <div class="feature-box" style="padding: 16px 24px;">
+            <div class="feature-icon" style="font-size: 34px; width: 54px; height: 54px;">⚡</div>
+            <div class="feature-text">
+              <h3 style="font-size: 26px;">Auto Light &amp; Dark Sensor</h3>
+              <p style="font-size: 20px;">Dynamic frosted glass adaptation with 0% idle CPU overhead.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCENE 4: 1-CLICK INSTALL (21s - 25.5s) -->
+      <section id="scene-install" class="clip" data-start="21" data-duration="4.5">
+        <div class="badge-tag" id="tag-install">📦 1-Click Setup</div>
+        <h1 class="headline" id="title-install">
+          Install in <span class="gradient">2 Seconds</span>
+        </h1>
+        <p class="subtext" id="desc-install">
+          Zero complex setups. Automatic SHA-256 backup with 1-click restore.
+        </p>
+
+        <div class="window-card" id="card-terminal" style="max-width: 880px; overflow: hidden; background: #ffffff; color: #1e293b; border-color: rgba(255, 255, 255, 0.4);">
+          <div class="window-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+            <div class="window-dots">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+            </div>
+            <div class="window-title" style="color: #475569; font-weight: 600;">File Explorer · antigravity-wallpaper-engine</div>
+            <div class="code-pill" style="background: #0284c7; border-color: #38bdf8; color: #ffffff;">⚡ 1-Click Setup</div>
+          </div>
+          <div style="background: #ffffff; padding: 24px; display: flex; justify-content: center; align-items: center;">
+            <img src="assets/real-file-explorer.png" style="width: 100%; max-width: 800px; object-fit: contain; border-radius: 6px; box-shadow: 0 4px 18px rgba(0,0,0,0.08);" alt="install.bat and restore.bat Explorer" />
+          </div>
+          <div style="background: #0b0f19; padding: 18px 28px; display: flex; justify-content: space-around; font-family: 'JetBrains Mono', monospace; font-size: 22px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div style="color: #4ade80; font-weight: 700;">▶ Double-Click install.bat</div>
+            <div style="color: #cbd5e1;">↺ Instant restore.bat</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCENE 5: REAL GITHUB PROOF & CALL TO ACTION (25.5s - 30s) -->
+      <section id="scene-cta" class="clip" data-start="25.5" data-duration="4.5">
+        <div class="badge-tag" id="tag-cta">⭐ 100% Free & Open Source</div>
+        <h1 class="headline" id="title-cta" style="margin-bottom: 12px;">
+          Star On <span class="gradient">GitHub</span>
+        </h1>
+
+        <!-- Actual GitHub Repository Screenshot showing v1.1.0 release & About box -->
+        <div class="window-card" id="card-github-shot" style="margin-top: 18px; max-height: 480px; overflow: hidden;">
+          <div class="window-header">
+            <div class="window-dots">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+            </div>
+            <div class="window-title">github.com/vinayaksaxena1-maker/antigravity-wallpaper-engine</div>
+            <div class="code-pill" style="background: #166534; border-color: #22c55e;">v1.1.0 Latest</div>
+          </div>
+          <img src="assets/real-github-repo.png" style="width: 100%; height: 420px; object-fit: cover; object-position: top center; display: block;" alt="GitHub Live Repository" />
+        </div>
+
+        <div class="cta-card" id="card-cta">
+          <div class="github-star-btn" style="margin: 0 auto;">
+            <span>⭐ Star on GitHub</span>
+          </div>
+          <div style="font-size: 26px; color: #38bdf8; font-weight: 700; margin-top: 18px;">
+            🔥 No Comment Bakchodi — Direct Link in Pinned Comment! 👇
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1: Hook (0s - 5.8s) - Fast snappy intro
+      tl.fromTo("#tag-hook", { y: -20, opacity: 0.8 }, { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" }, 0.0);
+      tl.fromTo("#title-hook", { y: 30, opacity: 0.8 }, { y: 0, opacity: 1, duration: 0.35, ease: "power2.out" }, 0.0);
+      tl.fromTo("#desc-hook", { y: 20, opacity: 0.8 }, { y: 0, opacity: 1, duration: 0.35, ease: "power2.out" }, 0.1);
+      tl.fromTo("#card-boring", { scale: 0.95, opacity: 0.8, y: 30 }, { scale: 1, opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 0.2);
+      tl.to("#card-boring", { scale: 0.95, opacity: 0, duration: 0.4, ease: "power2.in" }, 5.3);
+
+      // Scene 2: Reveal with Fast Multiple Wallpapers (5.8s - 14.0s)
+      tl.fromTo("#tag-reveal", { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 5.9);
+      tl.fromTo("#title-reveal", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 6.1);
+      tl.fromTo("#desc-reveal", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 6.3);
+      tl.fromTo("#card-samurai", { scale: 0.85, opacity: 0, y: 50 }, { scale: 1, opacity: 1, y: 0, duration: 0.6, ease: "power4.out" }, 6.5);
+      
+      // Fast snappy cuts matching the voiceover and music beat
+      tl.to("#wp-aicborg", { opacity: 1, duration: 0.3, ease: "power2.inOut" }, 8.3);
+      tl.set("#theme-window-title", { textContent: "Antigravity · Neural AI Core" }, 8.3);
+
+      tl.to("#wp-bumblebee", { opacity: 1, duration: 0.3, ease: "power2.inOut" }, 10.3);
+      tl.set("#theme-window-title", { textContent: "Antigravity · Transformers Blueprint" }, 10.3);
+
+      tl.to("#wp-samurai", { opacity: 1, duration: 0.3, ease: "power2.inOut" }, 12.0);
+      tl.set("#theme-window-title", { textContent: "Antigravity · Samurai Dusk" }, 12.0);
+
+      tl.to("#card-samurai", { scale: 0.95, opacity: 0, duration: 0.4, ease: "power2.in" }, 13.6);
+
+      // Scene 3: Features & Real Chat Badges (14.0s - 21.0s)
+      tl.fromTo("#tag-features", { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 14.1);
+      tl.fromTo("#title-features", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 14.3);
+      tl.fromTo("#card-feature-shot", { scale: 0.9, opacity: 0, y: 25 }, { scale: 1, opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 14.6);
+      tl.fromTo("#grid-features .feature-box", { x: -30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, stagger: 0.18, ease: "power3.out" }, 15.0);
+      tl.to("#card-feature-shot", { opacity: 0, scale: 0.96, duration: 0.35, ease: "power2.in" }, 20.6);
+      tl.to("#grid-features", { opacity: 0, y: -20, duration: 0.35, ease: "power2.in" }, 20.6);
+
+      // Scene 4: Install (21.0s - 25.5s)
+      tl.fromTo("#tag-install", { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 21.1);
+      tl.fromTo("#title-install", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 21.3);
+      tl.fromTo("#desc-install", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 21.5);
+      tl.fromTo("#card-terminal", { scale: 0.9, opacity: 0, y: 30 }, { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 21.7);
+      tl.to("#card-terminal", { scale: 0.95, opacity: 0, duration: 0.35, ease: "power2.in" }, 25.1);
+
+      // Scene 5: Real GitHub Proof & Call to Action (25.5s - 30.0s)
+      tl.fromTo("#tag-cta", { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 25.6);
+      tl.fromTo("#title-cta", { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.5)" }, 25.8);
+      tl.fromTo("#card-github-shot", { y: 30, opacity: 0, scale: 0.92 }, { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, 26.0);
+      tl.fromTo("#card-cta", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 26.4);
+      tl.fromTo(".github-star-btn", { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "elastic.out(1, 0.5)" }, 26.8);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
