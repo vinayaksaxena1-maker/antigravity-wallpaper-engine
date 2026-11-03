@@ -15,7 +15,7 @@
 
 <br/>
 
-*Antigravity IDE running live with custom Bumblebee wallpaper, frosted glass sidebars, and translucent composer.*
+*Antigravity IDE running live with custom wallpaper, frosted glass sidebars, and translucent composer.*
 
 </div>
 
