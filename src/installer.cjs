@@ -100,20 +100,25 @@ function main() {
   if (!fs.existsSync(archive)) throw new Error('Antigravity installation not found at: ' + archive);
 
   if (action === 'restore') {
-    if (!fs.existsSync(backup)) throw new Error('No backup archive found at: ' + backup);
-    fs.copyFileSync(backup, archive);
-    console.log('[SUCCESS] Original Antigravity restored from backup.');
+    const cleanBackup = [backup, archive + '.ascii-wallpapers.backup'].find(p => fs.existsSync(p));
+    if (!cleanBackup) throw new Error('No backup archive found to restore.');
+    fs.copyFileSync(cleanBackup, archive);
+    console.log('[SUCCESS] Original Antigravity restored from clean backup.');
     return;
   }
 
   const current = fs.readFileSync(archive);
   let original = current;
 
-  // Use existing backup as clean original if available
-  if (fs.existsSync(backup)) {
-    original = fs.readFileSync(backup);
+  // Detect pristine original backup even if previous mod was installed
+  const cleanOriginal = [backup, archive + '.ascii-wallpapers.backup'].find(p => fs.existsSync(p));
+  if (cleanOriginal) {
+    original = fs.readFileSync(cleanOriginal);
+    if (!fs.existsSync(backup)) {
+      fs.writeFileSync(backup, original);
+      console.log('[BACKUP] Created safe pristine backup at: ' + backup);
+    }
   } else {
-    // Save fresh pristine backup before any change
     fs.writeFileSync(backup, original);
     console.log('[BACKUP] Created safe backup at: ' + backup);
   }
