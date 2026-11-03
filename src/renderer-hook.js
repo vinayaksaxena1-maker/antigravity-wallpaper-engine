@@ -273,21 +273,24 @@
       }
       body[data-custom-wallpaper] :not(pre) > code,
       body[data-custom-wallpaper] a > code {
-        background: ${isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.12)'} !important;
-        color: ${isLight ? '#1e40af' : '#93c5fd'} !important;
-        border: 1px solid ${isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.18)'} !important;
+        background: ${isLight ? 'rgba(0, 0, 0, 0.07)' : 'rgba(10, 14, 22, 0.88)'} !important;
+        color: ${isLight ? '#0f172a' : '#ffffff'} !important;
+        border: 1px solid ${isLight ? 'rgba(0, 0, 0, 0.14)' : 'rgba(255, 255, 255, 0.16)'} !important;
         border-radius: 4px !important;
-        padding: 1px 5px !important;
+        padding: 1.5px 6px !important;
         font-size: 0.9em !important;
+        font-weight: 500 !important;
         text-shadow: none !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
         box-decoration-break: clone !important;
         -webkit-box-decoration-break: clone !important;
       }
       body[data-custom-wallpaper] :not(pre) > code:hover,
       body[data-custom-wallpaper] a:hover > code {
-        background: ${isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.22)'} !important;
-        color: ${isLight ? '#1d4ed8' : '#bfdbfe'} !important;
+        background: ${isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(18, 24, 38, 0.95)'} !important;
+        color: ${isLight ? '#0f172a' : '#ffffff'} !important;
       }
       body[data-custom-wallpaper] a {
         color: ${isLight ? '#2563eb' : '#60a5fa'} !important;
