@@ -1,6 +1,6 @@
 {
   "name": "antigravity-wallpaper-engine",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Ultra-lightweight, high-performance custom wallpaper engine with frosted glass glassmorphism for Google Antigravity desktop IDE.",
   "main": "src/installer.cjs",
   "scripts": {
