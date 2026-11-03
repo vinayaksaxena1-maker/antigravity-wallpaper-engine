@@ -22,9 +22,10 @@
   let prefs = { activeId: '', opacity: 85, scale: 100, enabled: true, themeMode: 'auto' };
   const imageCache = new Map();
   const lumCache = new Map();
+  const edgeColorCache = new Map();
   const modeNodes = new Map();
 
-  let sheet = null, canvas = null, ctx = null;
+  let sheet = null, canvas = null, ctx = null, resizeObserver = null;
   let host = null, shadow = null, panelOpen = false;
 
   function detectLuminance(img) {
@@ -48,6 +49,50 @@
       return isLight;
     } catch {
       return false;
+    }
+  }
+
+  function sampleEdgeColor(img, isLight) {
+    if (!img || !img.complete || !img.naturalWidth) {
+      return isLight ? 'rgba(248, 250, 252, 0.65)' : 'rgba(10, 13, 20, 0.65)';
+    }
+    const cacheKey = img.src + '_' + (isLight ? 'L' : 'D');
+    if (edgeColorCache.has(cacheKey)) return edgeColorCache.get(cacheKey);
+
+    try {
+      const c = document.createElement('canvas');
+      c.width = 10;
+      c.height = 40;
+      const cx = c.getContext('2d', { willReadFrequently: true });
+      const sampleW = Math.max(1, Math.round(img.naturalWidth * 0.18));
+      cx.drawImage(img, 0, 0, sampleW, img.naturalHeight, 0, 0, 10, 40);
+      const data = cx.getImageData(0, 0, 10, 40).data;
+      let rSum = 0, gSum = 0, bSum = 0;
+      const count = data.length / 4;
+      for (let i = 0; i < data.length; i += 4) {
+        rSum += data[i];
+        gSum += data[i + 1];
+        bSum += data[i + 2];
+      }
+      let r = Math.round(rSum / count);
+      let g = Math.round(gSum / count);
+      let b = Math.round(bSum / count);
+
+      if (isLight) {
+        r = Math.min(255, Math.round(r * 0.45 + 255 * 0.55));
+        g = Math.min(255, Math.round(g * 0.45 + 255 * 0.55));
+        b = Math.min(255, Math.round(b * 0.45 + 255 * 0.55));
+      } else {
+        r = Math.round(r * 0.4);
+        g = Math.round(g * 0.4);
+        b = Math.round(b * 0.4);
+      }
+      const alpha = isLight ? 0.65 : 0.70;
+      const color = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      edgeColorCache.set(cacheKey, color);
+      return color;
+    } catch {
+      return isLight ? 'rgba(248, 250, 252, 0.65)' : 'rgba(10, 13, 20, 0.65)';
     }
   }
 
@@ -83,7 +128,7 @@
     }
   }
 
-  function injectStyles(isLight) {
+  function injectStyles(isLight, sidebarBg) {
     let style = document.getElementById('agy-wallpaper-style');
     if (!style) {
       style = document.createElement('style');
@@ -101,9 +146,9 @@
       card: '#161d2c',
       'card-border': '#2a354c',
       border: '#2a354c',
-      sidebar: '#0a0d14',
-      'sidebar-muted': '#161d2c',
-      'sidebar-secondary': '#0e121c',
+      sidebar: sidebarBg || 'rgba(10, 13, 20, 0.65)',
+      'sidebar-muted': 'rgba(22, 29, 44, 0.45)',
+      'sidebar-secondary': 'rgba(14, 18, 28, 0.5)',
       primary: '#64a0f0',
       'primary-foreground': '#f0f3fa',
       'cta-foreground': '#ffffff',
@@ -125,9 +170,9 @@
       card: '#ffffff',
       'card-border': '#cbd5e1',
       border: '#cbd5e1',
-      sidebar: '#f8fafc',
-      'sidebar-muted': '#f1f5f9',
-      'sidebar-secondary': '#e2e8f0',
+      sidebar: sidebarBg || 'rgba(248, 250, 252, 0.65)',
+      'sidebar-muted': 'rgba(241, 245, 249, 0.5)',
+      'sidebar-secondary': 'rgba(226, 232, 240, 0.5)',
       primary: '#2563eb',
       'primary-foreground': '#ffffff',
       'cta-foreground': '#ffffff',
@@ -148,7 +193,6 @@
       ? `--editor-code-block-background:#f8fafc!important;--code-foreground:#875632!important;--editor-selection-background:#538da52e!important;--color-selection-background:#538da52e!important;--glass-border:#cbd5e1!important;--focus-ring-color:#2563eb!important;--editor-line-number-foreground:#64748b!important;--color-editorLineNumber-foreground:#64748b!important;`
       : `--editor-code-block-background:#0e121c!important;--code-foreground:#e7c59e!important;--editor-selection-background:#538da52e!important;--color-selection-background:#538da52e!important;--glass-border:#2a354c!important;--focus-ring-color:#64a0f0!important;--editor-line-number-foreground:#9aa5b8!important;--color-editorLineNumber-foreground:#9aa5b8!important;`;
 
-    const bgChrome = isLight ? '#f1f5f9' : '#0a0d14';
     const fgColor = isLight ? '#0f172a' : '#f0f3fa';
     const textGlow = isLight
       ? '0 0 2px #ffffff, 0 0 6px #ffffff, 0 0 12px #ffffff'
@@ -159,7 +203,6 @@
     const composerCardBg = isLight
       ? 'color-mix(in srgb, #ffffff 95%, transparent)'
       : 'color-mix(in srgb, #161d2c 92%, transparent)';
-    const sidebarRowBg = isLight ? '#f8fafc' : '#0a0d14';
 
     style.textContent = `
       body[data-custom-wallpaper],
@@ -172,7 +215,9 @@
         color: ${fgColor} !important;
       }
       body[data-custom-wallpaper] .agy-shell {
-        background: ${bgChrome} !important;
+        position: relative !important;
+        isolation: isolate !important;
+        background: transparent !important;
         --max-conversation-width: min(60rem, 50vw) !important;
       }
       @media (max-width: 900px) {
@@ -182,22 +227,38 @@
       }
       body[data-custom-wallpaper] .agy-sheet {
         isolation: isolate !important;
-        background: ${bgChrome} !important;
+        background: transparent !important;
         text-shadow: ${textGlow} !important;
         color: ${fgColor} !important;
       }
+      body[data-custom-wallpaper] aside,
+      body[data-custom-wallpaper] [class*="sidebar"]:not(.agy-sidebar-row),
+      body[data-custom-wallpaper] nav {
+        backdrop-filter: blur(24px) !important;
+        -webkit-backdrop-filter: blur(24px) !important;
+        background: ${sidebarBg} !important;
+        border-right: 1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'} !important;
+      }
+      body[data-custom-wallpaper] .agy-sidebar-row {
+        --row-bg: transparent !important;
+      }
+      body[data-custom-wallpaper] .agy-sidebar-row:hover {
+        background: ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)'} !important;
+        border-radius: 6px !important;
+      }
       body[data-custom-wallpaper] .surface-composer {
         background: ${composerBg} !important;
-        box-shadow: 0 10px 26px rgba(0,0,0,${isLight ? '0.08' : '0.2'}) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        box-shadow: 0 10px 26px rgba(0,0,0,${isLight ? '0.08' : '0.25'}) !important;
         color: ${fgColor} !important;
         text-shadow: none !important;
       }
       body[data-custom-wallpaper] .surface-composer-card {
         background: ${composerCardBg} !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
         color: ${fgColor} !important;
-      }
-      body[data-custom-wallpaper] .agy-sidebar-row {
-        --row-bg: ${sidebarRowBg} !important;
       }
       body[data-custom-wallpaper] .md-sticky-message-bleed,
       body[data-custom-wallpaper] .md-sticky-message-bleed::before,
@@ -278,11 +339,13 @@
   }
 
   function mountCanvas() {
-    const next = document.querySelector('.agy-sheet');
-    if (!next) return;
-    if (sheet !== next || !canvas?.isConnected) {
+    const shell = document.querySelector('.agy-shell');
+    const target = shell || document.querySelector('.agy-sheet');
+    if (!target) return;
+    if (sheet !== target || !canvas?.isConnected) {
+      if (resizeObserver) resizeObserver.disconnect();
       canvas?.remove();
-      sheet = next;
+      sheet = target;
       canvas = document.createElement('canvas');
       canvas.id = 'agy-wallpaper-canvas';
       Object.assign(canvas.style, {
@@ -293,9 +356,10 @@
         zIndex: '-1',
         pointerEvents: 'none'
       });
-      sheet.prepend(canvas);
+      target.prepend(canvas);
       ctx = canvas.getContext('2d', { alpha: false });
-      new ResizeObserver(() => resizeCanvas()).observe(sheet);
+      resizeObserver = new ResizeObserver(() => resizeCanvas());
+      resizeObserver.observe(target);
       resizeCanvas();
     }
   }
@@ -306,7 +370,12 @@
       const isLight = resolveIsLight();
       document.body.setAttribute('data-custom-theme', isLight ? 'light' : 'dark');
       if (host) host.setAttribute('data-theme', isLight ? 'light' : 'dark');
-      injectStyles(isLight);
+
+      const current = images.find(img => img.id === currentImageId) || images[0];
+      const img = current ? getImgElement(current) : null;
+      const sidebarBg = sampleEdgeColor(img, isLight);
+
+      injectStyles(isLight, sidebarBg);
       setMode(isLight, false);
       if (canvas) canvas.hidden = false;
     } else {
