@@ -268,6 +268,27 @@
       body[data-custom-wallpaper] .agy-sheet [class*=bottom-0][class*=pointer-events-none] {
         background-image: none !important;
       }
+      body[data-custom-wallpaper] :not(pre) > code,
+      body[data-custom-wallpaper] a > code {
+        background: ${isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.12)'} !important;
+        color: ${isLight ? '#1e40af' : '#93c5fd'} !important;
+        border: 1px solid ${isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.18)'} !important;
+        border-radius: 4px !important;
+        padding: 1px 5px !important;
+        font-size: 0.9em !important;
+        text-shadow: none !important;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+        box-decoration-break: clone !important;
+        -webkit-box-decoration-break: clone !important;
+      }
+      body[data-custom-wallpaper] :not(pre) > code:hover,
+      body[data-custom-wallpaper] a:hover > code {
+        background: ${isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.22)'} !important;
+        color: ${isLight ? '#1d4ed8' : '#bfdbfe'} !important;
+      }
+      body[data-custom-wallpaper] a {
+        color: ${isLight ? '#2563eb' : '#60a5fa'} !important;
+      }
       body[data-custom-wallpaper][data-custom-theme="light"] pre,
       body[data-custom-wallpaper][data-custom-theme="light"] code {
         --syntax-string: #477148;
