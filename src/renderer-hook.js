@@ -1,5 +1,5 @@
 /**
- * Antigravity Wallpaper Engine - Renderer Hook (Frosted Glass & Canvas)
+ * Antigravity Wallpaper Engine - Renderer Hook (Frosted Glass & Dynamic Themes)
  * Author: Vinayak Saxena (@vinayaksaxena1-maker)
  * License: MIT
  */
@@ -19,20 +19,79 @@
 
   let images = [];
   let currentImageId = '';
-  let prefs = { activeId: '', opacity: 85, scale: 100, enabled: true };
+  let prefs = { activeId: '', opacity: 85, scale: 100, enabled: true, themeMode: 'auto' };
   const imageCache = new Map();
+  const lumCache = new Map();
+  const modeNodes = new Map();
 
   let sheet = null, canvas = null, ctx = null;
   let host = null, shadow = null, panelOpen = false;
 
-  function injectStyles() {
+  function detectLuminance(img) {
+    if (!img || !img.complete || !img.naturalWidth) return false;
+    if (lumCache.has(img.src)) return lumCache.get(img.src);
+    try {
+      const c = document.createElement('canvas');
+      c.width = 40;
+      c.height = 25;
+      const cx = c.getContext('2d', { willReadFrequently: true });
+      cx.drawImage(img, 0, 0, 40, 25);
+      const data = cx.getImageData(0, 0, 40, 25).data;
+      let totalLum = 0;
+      const count = data.length / 4;
+      for (let i = 0; i < data.length; i += 4) {
+        totalLum += (0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]);
+      }
+      const avgLum = totalLum / (count * 255);
+      const isLight = avgLum > 0.48;
+      lumCache.set(img.src, isLight);
+      return isLight;
+    } catch {
+      return false;
+    }
+  }
+
+  function resolveIsLight() {
+    if (prefs.themeMode === 'light') return true;
+    if (prefs.themeMode === 'dark') return false;
+    const current = images.find(img => img.id === currentImageId) || images[0];
+    if (!current) return false;
+    const img = getImgElement(current);
+    return detectLuminance(img);
+  }
+
+  function setMode(isLight, off) {
+    const names = ['dark', 'light', 'dark-theme', 'light-theme', 'theme-dark', 'theme-light'];
+    if (off) {
+      for (const [e, old] of modeNodes) {
+        if (e.isConnected) {
+          e.classList.remove(...names);
+          e.classList.add(...old);
+        }
+      }
+      modeNodes.clear();
+      return;
+    }
+    const nodes = [document.body, ...document.querySelectorAll('#root, #root .dark, #root .light')];
+    for (const e of nodes) {
+      if (!modeNodes.has(e)) modeNodes.set(e, names.filter(c => e.classList.contains(c)));
+      e.classList.remove(...names);
+      e.classList.add(isLight ? 'light' : 'dark');
+      if (e === document.body) {
+        e.classList.add(isLight ? 'light-theme' : 'dark-theme', isLight ? 'theme-light' : 'theme-dark');
+      }
+    }
+  }
+
+  function injectStyles(isLight) {
     let style = document.getElementById('agy-wallpaper-style');
     if (!style) {
       style = document.createElement('style');
       style.id = 'agy-wallpaper-style';
       document.head.append(style);
     }
-    const tokens = {
+
+    const darkTokens = {
       background: '#0a0d14',
       foreground: '#f0f3fa',
       secondary: '#161d2c',
@@ -55,8 +114,52 @@
       input: '#2a354c',
       ring: '#64a0f0'
     };
-    const declarations = Object.entries(tokens).flatMap(([k, v]) => [`--${k}:${v}!important`, `--color-${k}:${v}!important`]).join(';');
-    const editor = `--editor-code-block-background:#0e121c!important;--code-foreground:#e7c59e!important;--editor-selection-background:#538da52e!important;--color-selection-background:#538da52e!important;--glass-border:#2a354c!important;--focus-ring-color:#64a0f0!important;--editor-line-number-foreground:#9aa5b8!important;--color-editorLineNumber-foreground:#9aa5b8!important;`;
+
+    const lightTokens = {
+      background: '#f1f5f9',
+      foreground: '#0f172a',
+      secondary: '#e2e8f0',
+      'secondary-foreground': '#475569',
+      muted: '#f1f5f9',
+      'muted-foreground': '#475569',
+      card: '#ffffff',
+      'card-border': '#cbd5e1',
+      border: '#cbd5e1',
+      sidebar: '#f8fafc',
+      'sidebar-muted': '#f1f5f9',
+      'sidebar-secondary': '#e2e8f0',
+      primary: '#2563eb',
+      'primary-foreground': '#ffffff',
+      'cta-foreground': '#ffffff',
+      popover: '#ffffff',
+      'popover-foreground': '#0f172a',
+      accent: '#f1f5f9',
+      'accent-foreground': '#0f172a',
+      input: '#cbd5e1',
+      ring: '#2563eb'
+    };
+
+    const tokens = isLight ? lightTokens : darkTokens;
+    const declarations = Object.entries(tokens)
+      .flatMap(([k, v]) => [`--${k}:${v}!important`, `--color-${k}:${v}!important`])
+      .join(';');
+
+    const editor = isLight
+      ? `--editor-code-block-background:#f8fafc!important;--code-foreground:#875632!important;--editor-selection-background:#538da52e!important;--color-selection-background:#538da52e!important;--glass-border:#cbd5e1!important;--focus-ring-color:#2563eb!important;--editor-line-number-foreground:#64748b!important;--color-editorLineNumber-foreground:#64748b!important;`
+      : `--editor-code-block-background:#0e121c!important;--code-foreground:#e7c59e!important;--editor-selection-background:#538da52e!important;--color-selection-background:#538da52e!important;--glass-border:#2a354c!important;--focus-ring-color:#64a0f0!important;--editor-line-number-foreground:#9aa5b8!important;--color-editorLineNumber-foreground:#9aa5b8!important;`;
+
+    const bgChrome = isLight ? '#f1f5f9' : '#0a0d14';
+    const fgColor = isLight ? '#0f172a' : '#f0f3fa';
+    const textGlow = isLight
+      ? '0 0 2px #ffffff, 0 0 6px #ffffff, 0 0 12px #ffffff'
+      : '0 0 2px #0a0d14, 0 0 6px #0a0d14, 0 0 12px #0a0d14';
+    const composerBg = isLight
+      ? 'color-mix(in srgb, #ffffff 88%, transparent)'
+      : 'color-mix(in srgb, #2a354c 60%, transparent)';
+    const composerCardBg = isLight
+      ? 'color-mix(in srgb, #ffffff 95%, transparent)'
+      : 'color-mix(in srgb, #161d2c 92%, transparent)';
+    const sidebarRowBg = isLight ? '#f8fafc' : '#0a0d14';
 
     style.textContent = `
       body[data-custom-wallpaper],
@@ -65,11 +168,11 @@
       body[data-custom-wallpaper] .agy-shell {
         ${declarations};
         ${editor}
-        color-scheme: dark !important;
-        color: #f0f3fa !important;
+        color-scheme: ${isLight ? 'light' : 'dark'} !important;
+        color: ${fgColor} !important;
       }
       body[data-custom-wallpaper] .agy-shell {
-        background: #0a0d14 !important;
+        background: ${bgChrome} !important;
         --max-conversation-width: min(60rem, 50vw) !important;
       }
       @media (max-width: 900px) {
@@ -79,18 +182,22 @@
       }
       body[data-custom-wallpaper] .agy-sheet {
         isolation: isolate !important;
-        background: #0a0d14 !important;
-        text-shadow: 0 0 2px #0a0d14, 0 0 6px #0a0d14, 0 0 12px #0a0d14 !important;
+        background: ${bgChrome} !important;
+        text-shadow: ${textGlow} !important;
+        color: ${fgColor} !important;
       }
       body[data-custom-wallpaper] .surface-composer {
-        background: color-mix(in srgb, #2a354c 60%, transparent) !important;
-        box-shadow: 0 10px 26px rgba(0,0,0,0.2) !important;
+        background: ${composerBg} !important;
+        box-shadow: 0 10px 26px rgba(0,0,0,${isLight ? '0.08' : '0.2'}) !important;
+        color: ${fgColor} !important;
+        text-shadow: none !important;
       }
       body[data-custom-wallpaper] .surface-composer-card {
-        background: color-mix(in srgb, #161d2c 92%, transparent) !important;
+        background: ${composerCardBg} !important;
+        color: ${fgColor} !important;
       }
       body[data-custom-wallpaper] .agy-sidebar-row {
-        --row-bg: #0a0d14 !important;
+        --row-bg: ${sidebarRowBg} !important;
       }
       body[data-custom-wallpaper] .md-sticky-message-bleed,
       body[data-custom-wallpaper] .md-sticky-message-bleed::before,
@@ -99,6 +206,12 @@
       }
       body[data-custom-wallpaper] .agy-sheet [class*=bottom-0][class*=pointer-events-none] {
         background-image: none !important;
+      }
+      body[data-custom-wallpaper][data-custom-theme="light"] pre,
+      body[data-custom-wallpaper][data-custom-theme="light"] code {
+        --syntax-string: #477148;
+        --syntax-keyword: #795498;
+        --syntax-comment: #627b72;
       }
     `;
   }
@@ -111,7 +224,13 @@
     api.getImage(item.file).then(dataUrl => {
       if (dataUrl) {
         img.src = dataUrl;
-        img.onload = () => { render(); updateThumbnails(); };
+        img.onload = () => {
+          if (item.id === currentImageId) {
+            applyWallpaperState();
+          }
+          render();
+          updateThumbnails();
+        };
       }
     });
     return img;
@@ -184,9 +303,19 @@
   function applyWallpaperState() {
     if (prefs.enabled && images.length > 0) {
       document.body.setAttribute('data-custom-wallpaper', 'true');
+      const isLight = resolveIsLight();
+      document.body.setAttribute('data-custom-theme', isLight ? 'light' : 'dark');
+      if (host) host.setAttribute('data-theme', isLight ? 'light' : 'dark');
+      injectStyles(isLight);
+      setMode(isLight, false);
       if (canvas) canvas.hidden = false;
     } else {
       document.body.removeAttribute('data-custom-wallpaper');
+      document.body.removeAttribute('data-custom-theme');
+      if (host) host.removeAttribute('data-theme');
+      setMode(false, true);
+      const style = document.getElementById('agy-wallpaper-style');
+      if (style) style.textContent = '';
       if (canvas) canvas.hidden = true;
     }
     render();
@@ -233,6 +362,14 @@
       });
       container.append(btn);
     }
+  }
+
+  function updateThemeButtons() {
+    if (!shadow) return;
+    const mode = prefs.themeMode || 'auto';
+    shadow.querySelectorAll('.btn-theme').forEach(btn => {
+      btn.setAttribute('aria-pressed', String(btn.dataset.mode === mode));
+    });
   }
 
   function positionTrigger() {
@@ -301,9 +438,17 @@
         font-size: 11px;
         cursor: pointer;
         backdrop-filter: blur(8px);
-        transition: background 0.15s;
+        transition: background 0.15s, color 0.15s;
       }
       .trigger:hover { background: rgba(35, 46, 68, 0.95); }
+      :host([data-theme="light"]) .trigger {
+        background: rgba(248, 250, 252, 0.92);
+        color: #0f172a;
+        border-color: rgba(0, 0, 0, 0.15);
+      }
+      :host([data-theme="light"]) .trigger:hover {
+        background: rgba(235, 240, 248, 0.95);
+      }
       .panel {
         position: fixed;
         top: 40px;
@@ -323,10 +468,26 @@
         flex-direction: column;
         gap: 10px;
       }
+      :host([data-theme="light"]) .panel {
+        background: rgba(255, 255, 255, 0.96);
+        color: #0f172a;
+        border-color: rgba(0, 0, 0, 0.12);
+        box-shadow: 0 12px 36px rgba(0,0,0,0.15);
+      }
       .panel[hidden] { display: none !important; }
-      .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; }
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        padding-bottom: 8px;
+      }
+      :host([data-theme="light"]) .header {
+        border-bottom-color: rgba(0,0,0,0.08);
+      }
       .title { font-size: 12px; font-weight: 600; color: #f0f3fa; }
-      .btn-group { display: flex; gap: 6px; }
+      :host([data-theme="light"]) .title { color: #0f172a; }
+      .btn-group { display: flex; gap: 5px; }
       .btn {
         background: rgba(255,255,255,0.08);
         border: 1px solid rgba(255,255,255,0.12);
@@ -335,12 +496,33 @@
         padding: 3px 8px;
         font-size: 11px;
         cursor: pointer;
-        transition: background 0.15s;
+        transition: background 0.15s, border-color 0.15s;
       }
       .btn:hover { background: rgba(255,255,255,0.18); }
+      :host([data-theme="light"]) .btn {
+        background: rgba(0,0,0,0.06);
+        border-color: rgba(0,0,0,0.12);
+        color: #0f172a;
+      }
+      :host([data-theme="light"]) .btn:hover {
+        background: rgba(0,0,0,0.12);
+      }
       .btn-add { background: #2b6cb0; border-color: #3182ce; font-weight: 500; }
       .btn-add:hover { background: #3182ce; }
-      .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-height: 180px; overflow-y: auto; padding: 2px; }
+      .btn-theme[aria-pressed="true"] {
+        background: #2b6cb0;
+        border-color: #3182ce;
+        color: #ffffff;
+        font-weight: 600;
+      }
+      .choices {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        max-height: 180px;
+        overflow-y: auto;
+        padding: 2px;
+      }
       .choice {
         background: none;
         border: 2px solid transparent;
@@ -352,11 +534,15 @@
         outline: none;
       }
       .choice:hover { border-color: rgba(255,255,255,0.4); }
+      :host([data-theme="light"]) .choice:hover { border-color: rgba(0,0,0,0.4); }
       .choice[aria-pressed=true] { border-color: #64a0f0; box-shadow: 0 0 0 1px #64a0f0; }
+      :host([data-theme="light"]) .choice[aria-pressed=true] { border-color: #2563eb; box-shadow: 0 0 0 1px #2563eb; }
       .choice canvas { width: 100%; height: 100%; display: block; object-fit: cover; }
-      .sliders { display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #a0aec0; }
+      .sliders { display: flex; flex-direction: column; gap: 8px; font-size: 11px; color: #a0aec0; }
+      :host([data-theme="light"]) .sliders { color: #475569; }
       .slider-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
       .slider-row input { flex: 1; accent-color: #64a0f0; cursor: pointer; }
+      :host([data-theme="light"]) .slider-row input { accent-color: #2563eb; }
       .val-text { min-width: 32px; text-align: right; font-variant-numeric: tabular-nums; }
     `;
     shadow.append(style);
@@ -385,6 +571,14 @@
       </div>
       <div class="choices"></div>
       <div class="sliders">
+        <div class="slider-row">
+          <span>Theme</span>
+          <div class="btn-group">
+            <button type="button" class="btn btn-theme" data-mode="auto">Auto</button>
+            <button type="button" class="btn btn-theme" data-mode="light">Light</button>
+            <button type="button" class="btn btn-theme" data-mode="dark">Dark</button>
+          </div>
+        </div>
         <div class="slider-row">
           <span>Opacity</span>
           <input type="range" class="range-opacity" min="15" max="100" step="1" value="${prefs.opacity}">
@@ -423,6 +617,15 @@
       selectWallpaper(picked.id);
     });
 
+    panel.querySelectorAll('.btn-theme').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        prefs.themeMode = btn.dataset.mode;
+        updateThemeButtons();
+        applyWallpaperState();
+      });
+    });
+
     const opRange = panel.querySelector('.range-opacity');
     const opText = panel.querySelector('.val-opacity');
     opRange.addEventListener('input', () => {
@@ -458,6 +661,7 @@
     });
 
     updateThumbnails();
+    updateThemeButtons();
     positionTrigger();
   }
 
@@ -480,7 +684,6 @@
   }
 
   async function init() {
-    injectStyles();
     try {
       const saved = await api.getPrefs();
       if (saved && typeof saved === 'object') {
