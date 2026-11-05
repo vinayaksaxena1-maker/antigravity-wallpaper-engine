@@ -19,7 +19,7 @@
 
   let images = [];
   let currentImageId = '';
-  let prefs = { activeId: '', opacity: 85, scale: 100, enabled: true, themeMode: 'auto' };
+  let prefs = { activeId: '', opacity: 85, scale: 100, enabled: true, themeMode: 'auto', userMsgStyle: 'light', aiTextStyle: 'auto' };
   const imageCache = new Map();
   const lumCache = new Map();
   const edgeColorCache = new Map();
@@ -194,6 +194,18 @@
       : `--editor-code-block-background:#0e121c!important;--code-foreground:#e7c59e!important;--editor-selection-background:#538da52e!important;--color-selection-background:#538da52e!important;--glass-border:#2a354c!important;--focus-ring-color:#64a0f0!important;--editor-line-number-foreground:#9aa5b8!important;--color-editorLineNumber-foreground:#9aa5b8!important;`;
 
     const fgColor = isLight ? '#0f172a' : '#f0f3fa';
+    let aiColor = isLight ? '#0f172a' : '#f0f3fa';
+    if (prefs.aiTextStyle === 'white') aiColor = '#f8fafc';
+    if (prefs.aiTextStyle === 'dark') aiColor = '#0f172a';
+
+    const isUserDark = prefs.userMsgStyle === 'dark';
+    const userMsgBg = isUserDark ? 'rgba(16, 22, 34, 0.90)' : 'rgba(255, 255, 255, 0.94)';
+    const userMsgBorder = isUserDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(0, 0, 0, 0.12)';
+    const userMsgColor = isUserDark ? '#ffffff' : '#000000';
+    const userMsgShadow = isUserDark ? '0 4px 16px rgba(0, 0, 0, 0.35)' : '0 4px 16px rgba(0, 0, 0, 0.12)';
+    const composerTextColor = isUserDark ? '#ffffff' : '#000000';
+    const composerCaretColor = isUserDark ? '#64a0f0' : '#000000';
+
     const textGlow = isLight
       ? '0 0 2px #ffffff, 0 0 6px #ffffff, 0 0 12px #ffffff'
       : '0 1px 2px rgba(0,0,0,0.95), 0 0 6px rgba(10,13,20,0.85), 0 0 14px rgba(10,13,20,0.75)';
@@ -215,7 +227,7 @@
         ${declarations};
         ${editor}
         color-scheme: ${isLight ? 'light' : 'dark'} !important;
-        color: ${fgColor} !important;
+        color: ${aiColor} !important;
       }
       body[data-custom-wallpaper] .agy-shell {
         position: relative !important;
@@ -232,7 +244,7 @@
         isolation: isolate !important;
         background: ${sheetBackground} !important;
         text-shadow: none !important;
-        color: ${fgColor} !important;
+        color: ${aiColor} !important;
       }
       body[data-custom-wallpaper] aside,
       body[data-custom-wallpaper] [class*="sidebar"]:not(.agy-sidebar-row),
@@ -259,15 +271,15 @@
         backdrop-filter: blur(16px) !important;
         -webkit-backdrop-filter: blur(16px) !important;
         box-shadow: 0 10px 26px rgba(0,0,0,${isLight ? '0.08' : '0.25'}) !important;
-        color: #000000 !important;
-        caret-color: #000000 !important;
+        color: ${composerTextColor} !important;
+        caret-color: ${composerCaretColor} !important;
         text-shadow: none !important;
       }
       body[data-custom-wallpaper] .surface-composer-card {
         background: ${composerCardBg} !important;
         backdrop-filter: blur(12px) !important;
         -webkit-backdrop-filter: blur(12px) !important;
-        color: #000000 !important;
+        color: ${composerTextColor} !important;
       }
       body[data-custom-wallpaper] .surface-composer textarea,
       body[data-custom-wallpaper] .surface-composer input,
@@ -276,8 +288,8 @@
       body[data-custom-wallpaper] .surface-composer-card input,
       body[data-custom-wallpaper] textarea,
       body[data-custom-wallpaper] input:not([type="range"]) {
-        color: #000000 !important;
-        caret-color: #000000 !important;
+        color: ${composerTextColor} !important;
+        caret-color: ${composerCaretColor} !important;
         text-shadow: none !important;
       }
       body[data-custom-wallpaper] textarea::placeholder,
@@ -286,7 +298,7 @@
         color: #475569 !important;
         opacity: 0.85 !important;
       }
-      /* Sent User Message & Sticky Prompt Styling (Pure Black High Contrast) */
+      /* Sent User Message & Sticky Prompt Styling */
       body[data-custom-wallpaper] .md-sticky-message-bleed,
       body[data-custom-wallpaper] [class*="sticky-message"],
       body[data-custom-wallpaper] [class*="UserMessage"],
@@ -298,13 +310,13 @@
       body[data-custom-wallpaper] [data-author="user"],
       body[data-custom-wallpaper] [data-message-author-role="user"],
       body[data-custom-wallpaper] [data-is-user="true"] {
-        background: rgba(255, 255, 255, 0.94) !important;
+        background: ${userMsgBg} !important;
         backdrop-filter: blur(14px) !important;
         -webkit-backdrop-filter: blur(14px) !important;
         border-radius: 8px !important;
-        border: 1px solid rgba(0, 0, 0, 0.12) !important;
-        color: #000000 !important;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+        border: 1px solid ${userMsgBorder} !important;
+        color: ${userMsgColor} !important;
+        box-shadow: ${userMsgShadow} !important;
         text-shadow: none !important;
       }
       body[data-custom-wallpaper] .md-sticky-message-bleed *,
@@ -318,7 +330,7 @@
       body[data-custom-wallpaper] [data-author="user"] *,
       body[data-custom-wallpaper] [data-message-author-role="user"] *,
       body[data-custom-wallpaper] [data-is-user="true"] * {
-        color: #000000 !important;
+        color: ${userMsgColor} !important;
         text-shadow: none !important;
       }
       body[data-custom-wallpaper] .md-sticky-message-bleed::before,
@@ -525,6 +537,14 @@
     shadow.querySelectorAll('.btn-theme').forEach(btn => {
       btn.setAttribute('aria-pressed', String(btn.dataset.mode === mode));
     });
+    const userMsg = prefs.userMsgStyle || 'light';
+    shadow.querySelectorAll('.btn-user-msg').forEach(btn => {
+      btn.setAttribute('aria-pressed', String(btn.dataset.style === userMsg));
+    });
+    const aiText = prefs.aiTextStyle || 'auto';
+    shadow.querySelectorAll('.btn-ai-text').forEach(btn => {
+      btn.setAttribute('aria-pressed', String(btn.dataset.style === aiText));
+    });
   }
 
   function positionTrigger() {
@@ -664,7 +684,9 @@
       }
       .btn-add { background: #2b6cb0; border-color: #3182ce; font-weight: 500; }
       .btn-add:hover { background: #3182ce; }
-      .btn-theme[aria-pressed="true"] {
+      .btn-theme[aria-pressed="true"],
+      .btn-user-msg[aria-pressed="true"],
+      .btn-ai-text[aria-pressed="true"] {
         background: #2b6cb0;
         border-color: #3182ce;
         color: #ffffff;
@@ -735,6 +757,21 @@
           </div>
         </div>
         <div class="slider-row">
+          <span>User Msg</span>
+          <div class="btn-group">
+            <button type="button" class="btn btn-user-msg" data-style="light">Light Card</button>
+            <button type="button" class="btn btn-user-msg" data-style="dark">Dark Glass</button>
+          </div>
+        </div>
+        <div class="slider-row">
+          <span>AI Text</span>
+          <div class="btn-group">
+            <button type="button" class="btn btn-ai-text" data-style="auto">Auto</button>
+            <button type="button" class="btn btn-ai-text" data-style="white">White</button>
+            <button type="button" class="btn btn-ai-text" data-style="dark">Dark</button>
+          </div>
+        </div>
+        <div class="slider-row">
           <span>Opacity</span>
           <input type="range" class="range-opacity" min="15" max="100" step="1" value="${prefs.opacity}">
           <span class="val-text val-opacity">${prefs.opacity}%</span>
@@ -777,6 +814,27 @@
         e.stopPropagation();
         prefs.themeMode = btn.dataset.mode;
         updateThemeButtons();
+        api.savePrefs(prefs);
+        applyWallpaperState();
+      });
+    });
+
+    panel.querySelectorAll('.btn-user-msg').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        prefs.userMsgStyle = btn.dataset.style;
+        updateThemeButtons();
+        api.savePrefs(prefs);
+        applyWallpaperState();
+      });
+    });
+
+    panel.querySelectorAll('.btn-ai-text').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        prefs.aiTextStyle = btn.dataset.style;
+        updateThemeButtons();
+        api.savePrefs(prefs);
         applyWallpaperState();
       });
     });
