@@ -227,7 +227,6 @@
         ${declarations};
         ${editor}
         color-scheme: ${isLight ? 'light' : 'dark'} !important;
-        color: ${aiColor} !important;
       }
       body[data-custom-wallpaper] .agy-shell {
         position: relative !important;
@@ -244,7 +243,7 @@
         isolation: isolate !important;
         background: ${sheetBackground} !important;
         text-shadow: none !important;
-        color: ${aiColor} !important;
+        color: ${aiColor};
       }
       body[data-custom-wallpaper] aside,
       body[data-custom-wallpaper] [class*="sidebar"]:not(.agy-sidebar-row),
@@ -261,9 +260,27 @@
         background: ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)'} !important;
         border-radius: 6px !important;
       }
+      body[data-custom-wallpaper] aside [class*="bg-white"],
+      body[data-custom-wallpaper] aside [class*="bg-foreground"],
+      body[data-custom-wallpaper] aside [class*="bg-primary"],
+      body[data-custom-wallpaper] aside [data-active="true"],
+      body[data-custom-wallpaper] aside [aria-selected="true"],
+      body[data-custom-wallpaper] aside [class*="active"],
       body[data-custom-wallpaper] .agy-sidebar-row[data-active="true"],
       body[data-custom-wallpaper] .agy-sidebar-row[aria-selected="true"],
       body[data-custom-wallpaper] .agy-sidebar-row.active {
+        background: rgba(255, 255, 255, 0.95) !important;
+        color: #0f172a !important;
+      }
+      body[data-custom-wallpaper] aside [class*="bg-white"] *,
+      body[data-custom-wallpaper] aside [class*="bg-foreground"] *,
+      body[data-custom-wallpaper] aside [class*="bg-primary"] *,
+      body[data-custom-wallpaper] aside [data-active="true"] *,
+      body[data-custom-wallpaper] aside [aria-selected="true"] *,
+      body[data-custom-wallpaper] aside [class*="active"] *,
+      body[data-custom-wallpaper] .agy-sidebar-row[data-active="true"] *,
+      body[data-custom-wallpaper] .agy-sidebar-row[aria-selected="true"] *,
+      body[data-custom-wallpaper] .agy-sidebar-row.active * {
         color: #0f172a !important;
       }
       body[data-custom-wallpaper] .surface-composer {
@@ -298,7 +315,11 @@
         color: #475569 !important;
         opacity: 0.85 !important;
       }
-      /* Sent User Message & Sticky Prompt Styling */
+      /* Sent User Message & Right-Aligned Turn Bubbles */
+      body[data-custom-wallpaper] [class*="justify-end"] [class*="rounded"],
+      body[data-custom-wallpaper] [class*="items-end"] [class*="rounded"],
+      body[data-custom-wallpaper] [class*="self-end"],
+      body[data-custom-wallpaper] [class*="ml-auto"],
       body[data-custom-wallpaper] .md-sticky-message-bleed,
       body[data-custom-wallpaper] [class*="sticky-message"],
       body[data-custom-wallpaper] [class*="UserMessage"],
@@ -313,12 +334,16 @@
         background: ${userMsgBg} !important;
         backdrop-filter: blur(14px) !important;
         -webkit-backdrop-filter: blur(14px) !important;
-        border-radius: 8px !important;
+        border-radius: 9999px !important;
         border: 1px solid ${userMsgBorder} !important;
         color: ${userMsgColor} !important;
         box-shadow: ${userMsgShadow} !important;
         text-shadow: none !important;
       }
+      body[data-custom-wallpaper] [class*="justify-end"] [class*="rounded"] *,
+      body[data-custom-wallpaper] [class*="items-end"] [class*="rounded"] *,
+      body[data-custom-wallpaper] [class*="self-end"] *,
+      body[data-custom-wallpaper] [class*="ml-auto"] *,
       body[data-custom-wallpaper] .md-sticky-message-bleed *,
       body[data-custom-wallpaper] [class*="sticky-message"] *,
       body[data-custom-wallpaper] [class*="UserMessage"] *,
@@ -476,6 +501,7 @@
       injectStyles(isLight, sidebarBg);
       setMode(isLight, false);
       if (canvas) canvas.hidden = false;
+      enforceContrast();
     } else {
       document.body.removeAttribute('data-custom-wallpaper');
       document.body.removeAttribute('data-custom-theme');
@@ -896,6 +922,66 @@
     }
   }
 
+  function enforceContrast() {
+    if (!prefs.enabled) return;
+    const isUserDark = prefs.userMsgStyle === 'dark';
+    const userTargetBg = isUserDark ? 'rgba(16, 22, 34, 0.90)' : 'rgba(255, 255, 255, 0.95)';
+    const userTargetColor = isUserDark ? '#ffffff' : '#000000';
+    const userTargetBorder = isUserDark ? '1px solid rgba(255, 255, 255, 0.16)' : '1px solid rgba(0, 0, 0, 0.12)';
+
+    // 1. Scan for user message bubbles in chat (.agy-sheet, .agy-shell, or main)
+    const sheetEl = document.querySelector('.agy-sheet') || document.querySelector('.agy-shell');
+    if (sheetEl) {
+      const wrappers = sheetEl.querySelectorAll('[class*="justify-end"], [class*="items-end"], [class*="ml-auto"], [class*="self-end"]');
+      wrappers.forEach(wrap => {
+        const bubble = wrap.querySelector('[class*="rounded"]') || wrap;
+        bubble.style.setProperty('background', userTargetBg, 'important');
+        bubble.style.setProperty('color', userTargetColor, 'important');
+        bubble.style.setProperty('border', userTargetBorder, 'important');
+        bubble.style.setProperty('text-shadow', 'none', 'important');
+        bubble.querySelectorAll('*').forEach(c => {
+          c.style.setProperty('color', userTargetColor, 'important');
+          c.style.setProperty('text-shadow', 'none', 'important');
+        });
+      });
+    }
+
+    // 2. Scan sidebar active items
+    const sidebars = document.querySelectorAll('aside, nav, [class*="sidebar"]');
+    sidebars.forEach(sb => {
+      sb.querySelectorAll('[class*="bg-white"], [class*="active"], [aria-selected="true"], [data-active="true"]').forEach(activeEl => {
+        activeEl.style.setProperty('color', '#0f172a', 'important');
+        activeEl.querySelectorAll('*').forEach(c => c.style.setProperty('color', '#0f172a', 'important'));
+      });
+    });
+
+    // 3. Fallback: Any element anywhere in sheetEl whose computed background is near-white
+    if (sheetEl) {
+      const candidates = sheetEl.querySelectorAll('div, span, p');
+      for (let i = 0; i < candidates.length; i++) {
+        const el = candidates[i];
+        if (el.children.length > 2) continue;
+        const bg = window.getComputedStyle(el).backgroundColor;
+        if (bg && bg.startsWith('rgb')) {
+          const m = bg.match(/\d+/g);
+          if (m && m.length >= 3) {
+            const r = Number(m[0]), g = Number(m[1]), b = Number(m[2]);
+            const a = m[3] !== undefined ? Number(m[3]) : 1;
+            if (a > 0.4 && (r + g + b) > 650) {
+              if (isUserDark && el.closest('[class*="justify-end"], [class*="ml-auto"]')) {
+                el.style.setProperty('background', userTargetBg, 'important');
+                el.style.setProperty('color', '#ffffff', 'important');
+              } else {
+                el.style.setProperty('color', '#000000', 'important');
+              }
+              el.style.setProperty('text-shadow', 'none', 'important');
+            }
+          }
+        }
+      }
+    }
+  }
+
   async function init() {
     try {
       const saved = await api.getPrefs();
@@ -915,6 +1001,7 @@
     new MutationObserver(() => {
       mountCanvas();
       positionTrigger();
+      enforceContrast();
     }).observe(document.body, { childList: true, subtree: true });
 
     window.addEventListener('resize', () => {
