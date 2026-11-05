@@ -203,8 +203,9 @@
     const userMsgBorder = isUserDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(0, 0, 0, 0.12)';
     const userMsgColor = isUserDark ? '#ffffff' : '#000000';
     const userMsgShadow = isUserDark ? '0 4px 16px rgba(0, 0, 0, 0.35)' : '0 4px 16px rgba(0, 0, 0, 0.12)';
-    const composerTextColor = isUserDark ? '#ffffff' : '#000000';
-    const composerCaretColor = isUserDark ? '#64a0f0' : '#000000';
+    const composerTextColor = isLight ? '#0f172a' : '#f8fafc';
+    const composerCaretColor = isLight ? '#2563eb' : '#64a0f0';
+    const composerPlaceholder = isLight ? '#64748b' : '#94a3b8';
 
     const textGlow = isLight
       ? '0 0 2px #ffffff, 0 0 6px #ffffff, 0 0 12px #ffffff'
@@ -269,8 +270,11 @@
       body[data-custom-wallpaper] .agy-sidebar-row[data-active="true"],
       body[data-custom-wallpaper] .agy-sidebar-row[aria-selected="true"],
       body[data-custom-wallpaper] .agy-sidebar-row.active {
-        background: rgba(255, 255, 255, 0.95) !important;
-        color: #0f172a !important;
+        background: ${isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.12)'} !important;
+        border: 1px solid ${isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.18)'} !important;
+        border-radius: 6px !important;
+        color: ${isLight ? '#0f172a' : '#f8fafc'} !important;
+        backdrop-filter: blur(8px) !important;
       }
       body[data-custom-wallpaper] aside [class*="bg-white"] *,
       body[data-custom-wallpaper] aside [class*="bg-foreground"] *,
@@ -281,7 +285,7 @@
       body[data-custom-wallpaper] .agy-sidebar-row[data-active="true"] *,
       body[data-custom-wallpaper] .agy-sidebar-row[aria-selected="true"] *,
       body[data-custom-wallpaper] .agy-sidebar-row.active * {
-        color: #0f172a !important;
+        color: ${isLight ? '#0f172a' : '#f8fafc'} !important;
       }
       body[data-custom-wallpaper] .surface-composer {
         background: ${composerBg} !important;
@@ -312,7 +316,7 @@
       body[data-custom-wallpaper] textarea::placeholder,
       body[data-custom-wallpaper] input::placeholder,
       body[data-custom-wallpaper] [contenteditable]::placeholder {
-        color: #475569 !important;
+        color: ${composerPlaceholder} !important;
         opacity: 0.85 !important;
       }
       /* Sent User Message & Right-Aligned Turn Bubbles */
@@ -946,12 +950,14 @@
       });
     }
 
-    // 2. Scan sidebar active items
+    // 2. Scan sidebar active items (remove solid white fill, make clean frosted glass)
     const sidebars = document.querySelectorAll('aside, nav, [class*="sidebar"]');
     sidebars.forEach(sb => {
       sb.querySelectorAll('[class*="bg-white"], [class*="active"], [aria-selected="true"], [data-active="true"]').forEach(activeEl => {
-        activeEl.style.setProperty('color', '#0f172a', 'important');
-        activeEl.querySelectorAll('*').forEach(c => c.style.setProperty('color', '#0f172a', 'important'));
+        activeEl.style.setProperty('background', 'rgba(255, 255, 255, 0.12)', 'important');
+        activeEl.style.setProperty('border', '1px solid rgba(255, 255, 255, 0.18)', 'important');
+        activeEl.style.setProperty('color', '#f8fafc', 'important');
+        activeEl.querySelectorAll('*').forEach(c => c.style.setProperty('color', '#f8fafc', 'important'));
       });
     });
 
