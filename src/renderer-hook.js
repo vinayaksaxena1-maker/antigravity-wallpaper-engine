@@ -231,7 +231,7 @@
       body[data-custom-wallpaper] .agy-sheet {
         isolation: isolate !important;
         background: ${sheetBackground} !important;
-        text-shadow: ${textGlow} !important;
+        text-shadow: none !important;
         color: ${fgColor} !important;
       }
       body[data-custom-wallpaper] aside,
@@ -249,19 +249,42 @@
         background: ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)'} !important;
         border-radius: 6px !important;
       }
+      body[data-custom-wallpaper] .agy-sidebar-row[data-active="true"],
+      body[data-custom-wallpaper] .agy-sidebar-row[aria-selected="true"],
+      body[data-custom-wallpaper] .agy-sidebar-row.active {
+        color: #0f172a !important;
+      }
       body[data-custom-wallpaper] .surface-composer {
         background: ${composerBg} !important;
         backdrop-filter: blur(16px) !important;
         -webkit-backdrop-filter: blur(16px) !important;
         box-shadow: 0 10px 26px rgba(0,0,0,${isLight ? '0.08' : '0.25'}) !important;
-        color: ${fgColor} !important;
+        color: #000000 !important;
+        caret-color: #000000 !important;
         text-shadow: none !important;
       }
       body[data-custom-wallpaper] .surface-composer-card {
         background: ${composerCardBg} !important;
         backdrop-filter: blur(12px) !important;
         -webkit-backdrop-filter: blur(12px) !important;
-        color: ${fgColor} !important;
+        color: #000000 !important;
+      }
+      body[data-custom-wallpaper] .surface-composer textarea,
+      body[data-custom-wallpaper] .surface-composer input,
+      body[data-custom-wallpaper] .surface-composer [contenteditable],
+      body[data-custom-wallpaper] .surface-composer-card textarea,
+      body[data-custom-wallpaper] .surface-composer-card input,
+      body[data-custom-wallpaper] textarea,
+      body[data-custom-wallpaper] input:not([type="range"]) {
+        color: #000000 !important;
+        caret-color: #000000 !important;
+        text-shadow: none !important;
+      }
+      body[data-custom-wallpaper] textarea::placeholder,
+      body[data-custom-wallpaper] input::placeholder,
+      body[data-custom-wallpaper] [contenteditable]::placeholder {
+        color: #475569 !important;
+        opacity: 0.85 !important;
       }
       body[data-custom-wallpaper] .md-sticky-message-bleed,
       body[data-custom-wallpaper] .md-sticky-message-bleed::before,
