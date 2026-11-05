@@ -353,12 +353,8 @@
         opacity: 0.85 !important;
       }
       /* Sent User Message & Right-Aligned Turn Bubbles */
-      body[data-custom-wallpaper] [class*="justify-end"] [class*="rounded"],
-      body[data-custom-wallpaper] [class*="items-end"] [class*="rounded"],
-      body[data-custom-wallpaper] [class*="self-end"],
-      body[data-custom-wallpaper] [class*="ml-auto"],
-      body[data-custom-wallpaper] .md-sticky-message-bleed,
-      body[data-custom-wallpaper] [class*="sticky-message"],
+      body[data-custom-wallpaper] [class*="justify-end"] > [class*="rounded"],
+      body[data-custom-wallpaper] [class*="items-end"] > [class*="rounded"],
       body[data-custom-wallpaper] [class*="UserMessage"],
       body[data-custom-wallpaper] [class*="user-message"],
       body[data-custom-wallpaper] [class*="userMessage"],
@@ -377,12 +373,8 @@
         box-shadow: ${userMsgShadow} !important;
         text-shadow: none !important;
       }
-      body[data-custom-wallpaper] [class*="justify-end"] [class*="rounded"] *,
-      body[data-custom-wallpaper] [class*="items-end"] [class*="rounded"] *,
-      body[data-custom-wallpaper] [class*="self-end"] *,
-      body[data-custom-wallpaper] [class*="ml-auto"] *,
-      body[data-custom-wallpaper] .md-sticky-message-bleed *,
-      body[data-custom-wallpaper] [class*="sticky-message"] *,
+      body[data-custom-wallpaper] [class*="justify-end"] > [class*="rounded"] *,
+      body[data-custom-wallpaper] [class*="items-end"] > [class*="rounded"] *,
       body[data-custom-wallpaper] [class*="UserMessage"] *,
       body[data-custom-wallpaper] [class*="user-message"] *,
       body[data-custom-wallpaper] [class*="userMessage"] *,
@@ -402,25 +394,28 @@
       body[data-custom-wallpaper] .agy-sheet [class*=bottom-0][class*=pointer-events-none] {
         background-image: none !important;
       }
+      body[data-custom-wallpaper] .agy-sheet p,
+      body[data-custom-wallpaper] .agy-sheet li {
+        filter: none !important;
+      }
       body[data-custom-wallpaper] :not(pre) > code,
       body[data-custom-wallpaper] a > code {
-        background: ${isLight ? 'rgba(0, 0, 0, 0.07)' : 'rgba(10, 14, 22, 0.88)'} !important;
-        color: ${isLight ? '#0f172a' : '#ffffff'} !important;
-        border: 1px solid ${isLight ? 'rgba(0, 0, 0, 0.14)' : 'rgba(255, 255, 255, 0.16)'} !important;
+        background: ${isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.12)'} !important;
+        color: ${isLight ? '#0f172a' : '#f8fafc'} !important;
+        border: 1px solid ${isLight ? 'rgba(0, 0, 0, 0.14)' : 'rgba(255, 255, 255, 0.20)'} !important;
         border-radius: 4px !important;
         padding: 1.5px 6px !important;
         font-size: 0.9em !important;
         font-weight: 500 !important;
         text-shadow: none !important;
-        backdrop-filter: blur(8px) !important;
-        -webkit-backdrop-filter: blur(8px) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        filter: none !important;
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
-        box-decoration-break: clone !important;
-        -webkit-box-decoration-break: clone !important;
       }
       body[data-custom-wallpaper] :not(pre) > code:hover,
       body[data-custom-wallpaper] a:hover > code {
-        background: ${isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(18, 24, 38, 0.95)'} !important;
+        background: ${isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.18)'} !important;
         color: ${isLight ? '#0f172a' : '#ffffff'} !important;
       }
       body[data-custom-wallpaper] a {
@@ -969,9 +964,8 @@
     // 1. Scan for user message bubbles in chat (.agy-sheet, .agy-shell, or main)
     const sheetEl = document.querySelector('.agy-sheet') || document.querySelector('.agy-shell');
     if (sheetEl) {
-      const wrappers = sheetEl.querySelectorAll('[class*="justify-end"], [class*="items-end"], [class*="ml-auto"], [class*="self-end"]');
-      wrappers.forEach(wrap => {
-        const bubble = wrap.querySelector('[class*="rounded"]') || wrap;
+      const userBubbles = sheetEl.querySelectorAll('[class*="justify-end"] > [class*="rounded"], [class*="items-end"] > [class*="rounded"], [data-role="user"] [class*="rounded"], [data-author="user"] [class*="rounded"]');
+      userBubbles.forEach(bubble => {
         bubble.style.setProperty('background', userTargetBg, 'important');
         bubble.style.setProperty('color', userTargetColor, 'important');
         bubble.style.setProperty('border', userTargetBorder, 'important');
@@ -1031,6 +1025,7 @@
       for (let i = 0; i < candidates.length; i++) {
         const el = candidates[i];
         if (el.children.length > 2) continue;
+        if (el.closest('pre, code')) continue;
         const bg = window.getComputedStyle(el).backgroundColor;
         if (bg && bg.startsWith('rgb')) {
           const m = bg.match(/\d+/g);
@@ -1038,7 +1033,7 @@
             const r = Number(m[0]), g = Number(m[1]), b = Number(m[2]);
             const a = m[3] !== undefined ? Number(m[3]) : 1;
             if (a > 0.4 && (r + g + b) > 650) {
-              if (isUserDark && el.closest('[class*="justify-end"], [class*="ml-auto"]')) {
+              if (isUserDark && el.closest('[class*="justify-end"]')) {
                 el.style.setProperty('background', userTargetBg, 'important');
                 el.style.setProperty('color', '#ffffff', 'important');
               } else {
