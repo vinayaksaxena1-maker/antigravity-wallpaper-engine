@@ -286,10 +286,44 @@
         color: #475569 !important;
         opacity: 0.85 !important;
       }
+      /* Sent User Message & Sticky Prompt Styling (Pure Black High Contrast) */
       body[data-custom-wallpaper] .md-sticky-message-bleed,
+      body[data-custom-wallpaper] [class*="sticky-message"],
+      body[data-custom-wallpaper] [class*="UserMessage"],
+      body[data-custom-wallpaper] [class*="user-message"],
+      body[data-custom-wallpaper] [class*="userMessage"],
+      body[data-custom-wallpaper] [class*="userPrompt"],
+      body[data-custom-wallpaper] [class*="user-prompt"],
+      body[data-custom-wallpaper] [data-role="user"],
+      body[data-custom-wallpaper] [data-author="user"],
+      body[data-custom-wallpaper] [data-message-author-role="user"],
+      body[data-custom-wallpaper] [data-is-user="true"] {
+        background: rgba(255, 255, 255, 0.94) !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+        border-radius: 8px !important;
+        border: 1px solid rgba(0, 0, 0, 0.12) !important;
+        color: #000000 !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+        text-shadow: none !important;
+      }
+      body[data-custom-wallpaper] .md-sticky-message-bleed *,
+      body[data-custom-wallpaper] [class*="sticky-message"] *,
+      body[data-custom-wallpaper] [class*="UserMessage"] *,
+      body[data-custom-wallpaper] [class*="user-message"] *,
+      body[data-custom-wallpaper] [class*="userMessage"] *,
+      body[data-custom-wallpaper] [class*="userPrompt"] *,
+      body[data-custom-wallpaper] [class*="user-prompt"] *,
+      body[data-custom-wallpaper] [data-role="user"] *,
+      body[data-custom-wallpaper] [data-author="user"] *,
+      body[data-custom-wallpaper] [data-message-author-role="user"] *,
+      body[data-custom-wallpaper] [data-is-user="true"] * {
+        color: #000000 !important;
+        text-shadow: none !important;
+      }
       body[data-custom-wallpaper] .md-sticky-message-bleed::before,
       body[data-custom-wallpaper] .md-sticky-message-bleed::after {
-        background: transparent !important;
+        display: none !important;
       }
       body[data-custom-wallpaper] .agy-sheet [class*=bottom-0][class*=pointer-events-none] {
         background-image: none !important;
