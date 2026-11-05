@@ -261,27 +261,60 @@
         background: ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)'} !important;
         border-radius: 6px !important;
       }
+      body[data-custom-wallpaper] .agy-shell > div:first-child [class*="bg-white"],
+      body[data-custom-wallpaper] .agy-shell > div:first-child [class*="bg-foreground"],
+      body[data-custom-wallpaper] .agy-shell > div:first-child [class*="bg-primary"],
+      body[data-custom-wallpaper] .agy-shell > div:first-child [class*="active"],
+      body[data-custom-wallpaper] .agy-shell > div:first-child [class*="selected"],
+      body[data-custom-wallpaper] .agy-shell > div:first-child [aria-selected="true"],
+      body[data-custom-wallpaper] .agy-shell > div:first-child [data-selected="true"],
+      body[data-custom-wallpaper] .agy-shell > div:first-child [data-active="true"],
+      body[data-custom-wallpaper] .agy-shell > div:first-child [data-state="active"],
+      body[data-custom-wallpaper] .agy-shell > div:first-child [data-state="selected"],
       body[data-custom-wallpaper] aside [class*="bg-white"],
       body[data-custom-wallpaper] aside [class*="bg-foreground"],
       body[data-custom-wallpaper] aside [class*="bg-primary"],
       body[data-custom-wallpaper] aside [data-active="true"],
       body[data-custom-wallpaper] aside [aria-selected="true"],
       body[data-custom-wallpaper] aside [class*="active"],
+      body[data-custom-wallpaper] aside [class*="selected"],
+      body[data-custom-wallpaper] [class*="sidebar"] [class*="bg-white"],
+      body[data-custom-wallpaper] [class*="sidebar"] [class*="bg-foreground"],
+      body[data-custom-wallpaper] [class*="sidebar"] [class*="bg-primary"],
+      body[data-custom-wallpaper] [class*="sidebar"] [class*="active"],
+      body[data-custom-wallpaper] [class*="sidebar"] [class*="selected"],
+      body[data-custom-wallpaper] [class*="sidebar"] [aria-selected="true"],
+      body[data-custom-wallpaper] [class*="sidebar"] [data-selected="true"],
+      body[data-custom-wallpaper] [class*="sidebar"] [data-active="true"],
       body[data-custom-wallpaper] .agy-sidebar-row[data-active="true"],
       body[data-custom-wallpaper] .agy-sidebar-row[aria-selected="true"],
       body[data-custom-wallpaper] .agy-sidebar-row.active {
-        background: ${isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.12)'} !important;
-        border: 1px solid ${isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.18)'} !important;
-        border-radius: 6px !important;
+        background: ${isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.14)'} !important;
+        border: 1px solid ${isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.20)'} !important;
+        border-radius: 8px !important;
         color: ${isLight ? '#0f172a' : '#f8fafc'} !important;
-        backdrop-filter: blur(8px) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
       }
+      body[data-custom-wallpaper] .agy-shell > div:first-child [class*="bg-white"] *,
+      body[data-custom-wallpaper] .agy-shell > div:first-child [class*="active"] *,
+      body[data-custom-wallpaper] .agy-shell > div:first-child [class*="selected"] *,
+      body[data-custom-wallpaper] .agy-shell > div:first-child [aria-selected="true"] *,
+      body[data-custom-wallpaper] .agy-shell > div:first-child [data-selected="true"] *,
+      body[data-custom-wallpaper] .agy-shell > div:first-child [data-active="true"] *,
       body[data-custom-wallpaper] aside [class*="bg-white"] *,
       body[data-custom-wallpaper] aside [class*="bg-foreground"] *,
       body[data-custom-wallpaper] aside [class*="bg-primary"] *,
       body[data-custom-wallpaper] aside [data-active="true"] *,
       body[data-custom-wallpaper] aside [aria-selected="true"] *,
       body[data-custom-wallpaper] aside [class*="active"] *,
+      body[data-custom-wallpaper] aside [class*="selected"] *,
+      body[data-custom-wallpaper] [class*="sidebar"] [class*="bg-white"] *,
+      body[data-custom-wallpaper] [class*="sidebar"] [class*="active"] *,
+      body[data-custom-wallpaper] [class*="sidebar"] [class*="selected"] *,
+      body[data-custom-wallpaper] [class*="sidebar"] [aria-selected="true"] *,
+      body[data-custom-wallpaper] [class*="sidebar"] [data-selected="true"] *,
+      body[data-custom-wallpaper] [class*="sidebar"] [data-active="true"] *,
       body[data-custom-wallpaper] .agy-sidebar-row[data-active="true"] *,
       body[data-custom-wallpaper] .agy-sidebar-row[aria-selected="true"] *,
       body[data-custom-wallpaper] .agy-sidebar-row.active * {
@@ -951,15 +984,46 @@
     }
 
     // 2. Scan sidebar active items (remove solid white fill, make clean frosted glass)
-    const sidebars = document.querySelectorAll('aside, nav, [class*="sidebar"]');
+    const isLight = resolveIsLight();
+    const sidePillBg = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.14)';
+    const sidePillBorder = isLight ? '1px solid rgba(0, 0, 0, 0.12)' : '1px solid rgba(255, 255, 255, 0.20)';
+    const sidePillColor = isLight ? '#0f172a' : '#f8fafc';
+
+    // A. Check classes in sidebars
+    const sidebars = document.querySelectorAll('aside, nav, [class*="sidebar"], .agy-shell > div:first-child');
     sidebars.forEach(sb => {
-      sb.querySelectorAll('[class*="bg-white"], [class*="active"], [aria-selected="true"], [data-active="true"]').forEach(activeEl => {
-        activeEl.style.setProperty('background', 'rgba(255, 255, 255, 0.12)', 'important');
-        activeEl.style.setProperty('border', '1px solid rgba(255, 255, 255, 0.18)', 'important');
-        activeEl.style.setProperty('color', '#f8fafc', 'important');
-        activeEl.querySelectorAll('*').forEach(c => c.style.setProperty('color', '#f8fafc', 'important'));
+      sb.querySelectorAll('[class*="bg-white"], [class*="active"], [class*="selected"], [aria-selected="true"], [data-active="true"]').forEach(activeEl => {
+        activeEl.style.setProperty('background', sidePillBg, 'important');
+        activeEl.style.setProperty('border', sidePillBorder, 'important');
+        activeEl.style.setProperty('border-radius', '8px', 'important');
+        activeEl.style.setProperty('color', sidePillColor, 'important');
+        activeEl.querySelectorAll('*').forEach(c => c.style.setProperty('color', sidePillColor, 'important'));
       });
     });
+
+    // B. Geometric scan: Any element on the left side of screen (x < 360px) that has a solid white background
+    const allLeftElements = document.querySelectorAll('*');
+    for (let i = 0; i < allLeftElements.length; i++) {
+      const el = allLeftElements[i];
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 30 && rect.height > 12 && rect.left < 360 && rect.right < 380) {
+        const bg = window.getComputedStyle(el).backgroundColor;
+        if (bg && bg.startsWith('rgb')) {
+          const m = bg.match(/\d+/g);
+          if (m && m.length >= 3) {
+            const r = Number(m[0]), g = Number(m[1]), b = Number(m[2]);
+            const a = m[3] !== undefined ? Number(m[3]) : 1;
+            if (a > 0.4 && (r + g + b) > 650) {
+              el.style.setProperty('background', sidePillBg, 'important');
+              el.style.setProperty('border', sidePillBorder, 'important');
+              el.style.setProperty('border-radius', '8px', 'important');
+              el.style.setProperty('color', sidePillColor, 'important');
+              el.querySelectorAll('*').forEach(c => c.style.setProperty('color', sidePillColor, 'important'));
+            }
+          }
+        }
+      }
+    }
 
     // 3. Fallback: Any element anywhere in sheetEl whose computed background is near-white
     if (sheetEl) {
