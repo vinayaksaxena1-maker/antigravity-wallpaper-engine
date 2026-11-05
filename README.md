@@ -5,7 +5,8 @@
 ### *Break free from boring stock layouts. Customize your IDE your way — stunning custom wallpapers, adaptive frosted glass, and rock-solid performance.*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.0-emerald.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-1.2.0-emerald.svg)](package.json)
+[![Antigravity Compatibility](https://img.shields.io/badge/Antigravity%20Compatibility-All%20Latest%20Updates%20(v2.0%2B%20Tested)-success.svg)](https://antigravity.google)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Electron-9cf.svg)](https://antigravity.google)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/vinayaksaxena1-maker/antigravity-wallpaper-engine/pulls)
 
@@ -26,10 +27,13 @@
 Most third-party IDE mods inject heavy procedural noise loops, continuous math recalculations, and thousands of lines of legacy bloat that waste CPU cycles and battery life.
 
 **Antigravity Wallpaper Engine** is engineered under strict clean-room, pragmatic principles:
+- **Compatible with All Latest Antigravity Updates:** Fully tested and hardened against the newest Google Antigravity IDE releases, Gemini 3.8 chat layouts, active conversation sidebars, and modern UI trees.
 - **Zero Bloat:** Lightweight, modular codebase without unused dependencies.
 - **0% Idle CPU:** Zero runtime background loops. Renders statically and efficiently via hardware-accelerated HTML5 Canvas.
+- **Interactive Chat Style Controls (v1.2.0):** Dedicated controls in the Wallpaper panel for sent user messages (`[ Light Card ]` / `[ Dark Glass ]`) and AI text (`[ Auto ]` / `[ White ]` / `[ Dark ]`), guaranteeing 100% crisp readability over any wallpaper art.
+- **Crystal-Clear Text & Inline Code:** Zero-blur monospace inline code badges (`<code>`) and sharp composer text without annoying smudges or distorted backdrop filters.
 - **Adaptive Frosted Glass (Mica Effect):** Dynamically extracts edge colors from your active wallpaper (`backdrop-filter: blur(24px)`) so sidebars and panels seamlessly melt into the art.
-- **Rock-Solid Contrast & Readability:** Deep black glass capsules (`rgba(10, 14, 22, 0.88)`) with pure white high-contrast text for all code snippets, paths, and inline badges (`<code>`).
+- **Self-Healing Dynamic Contrast Engine:** Real-time DOM observer keeps active conversation tabs, sidebar selections, and composer textareas perfectly legible even across dynamic theme switching.
 - **Automatic Light/Dark Theme Switching:** Features ITU-R BT.709 relative luminance detection — automatically switches the UI to light or dark frosted glass depending on the brightness of your chosen wallpaper.
 - **Safe & Non-Destructive:** Performs automatic SHA-256 backup verification. Restore stock Antigravity anytime with 1 click.
 
@@ -47,12 +51,14 @@ Out of the box, the engine comes pre-packaged with two hand-crafted high-resolut
 
 - 🖼️ **Any Custom Image or GIF:** Set any `.jpg`, `.jpeg`, `.png`, `.webp`, or `.gif` as your live IDE workbench background.
 - 🗂️ **Native Windows File Picker (`+ Image`):** Pick wallpapers directly from any drive or folder on your PC using the native OS file dialog.
+- 💬 **Live Chat Style Switcher:** Choose between **Light Card** (solid white pill with black text) or **Dark Glass** (deep frosted glass with white text) for sent messages, and toggle AI response brightness on the fly.
 - 🔍 **Live Zoom & Scaling Slider:** Dynamically scale your wallpaper from `25%` to `250%` with auto-centering.
 - 💡 **Opacity & Brightness Blending:** Adjust wallpaper visibility from `15%` to `100%` with smooth dark base fading.
 - 🌓 **Theme Controls (Auto / Light / Dark):** Let the engine automatically detect wallpaper luminance, or manually force Light or Dark mode.
 - 🔮 **Full-Window Frosted Glass:** Translucent, blur-filtered surfaces for the sidebar, chat composer, and floating cards.
 - ⌨️ **Quick Keyboard Shortcut:** Toggle the wallpaper control panel anytime using `Ctrl + Alt + W`.
 - 🔄 **1-Click Universal Installer & Rollback:** Safe batch scripts with auto Node.js path discovery.
+- 🛡️ **Rock-Solid Compatibility:** Works out-of-the-box with all latest Antigravity updates and UI refreshes.
 
 ---
 

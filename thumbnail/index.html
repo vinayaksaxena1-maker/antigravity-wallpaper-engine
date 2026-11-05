@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YouTube Thumbnail - Antigravity Wallpaper Engine</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800;900&family=JetBrains+Mono:wght@700;800&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 1280px;
+      height: 720px;
+      overflow: hidden;
+      background: #090d16;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      position: relative;
+    }
+
+    /* Background Split Container */
+    .split-container {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Left Side - Boring */
+    .side-before {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 520px;
+      height: 100%;
+      overflow: hidden;
+      border-right: 4px solid #ef4444;
+      background: #e2e8f0;
+      filter: brightness(0.85) contrast(0.9);
+      z-index: 1;
+    }
+    .side-before img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: left center;
+    }
+    .badge-before {
+      position: absolute;
+      top: 36px;
+      left: 36px;
+      background: #ef4444;
+      color: #ffffff;
+      font-size: 32px;
+      font-weight: 900;
+      padding: 10px 24px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Right Side - Cyberpunk Transformation */
+    .side-after {
+      position: absolute;
+      left: 480px;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      overflow: hidden;
+      clip-path: polygon(70px 0, 100% 0, 100% 100%, 0 100%);
+      z-index: 2;
+      background: #07090e;
+      box-shadow: -16px 0 50px rgba(0, 229, 255, 0.4);
+    }
+    .side-after img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 70% center;
+      transform: scale(1.04);
+    }
+    .badge-after {
+      position: absolute;
+      top: 36px;
+      right: 40px;
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      color: #ffffff;
+      font-size: 32px;
+      font-weight: 900;
+      padding: 10px 26px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(6, 182, 212, 0.7);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+    }
+
+    /* Lightning / Neon Divider Line */
+    .divider-line {
+      position: absolute;
+      left: 550px;
+      top: 0;
+      bottom: 0;
+      width: 8px;
+      background: #00f0ff;
+      box-shadow: 0 0 25px #00f0ff, 0 0 50px #38bdf8;
+      transform: skewX(-5.5deg);
+      z-index: 10;
+    }
+
+    /* Center Viral Headline Overlay */
+    .headline-bar {
+      position: absolute;
+      bottom: 30px;
+      left: 36px;
+      right: 36px;
+      z-index: 20;
+      background: rgba(10, 14, 24, 0.92);
+      backdrop-filter: blur(24px);
+      border: 2px solid rgba(56, 189, 248, 0.5);
+      border-radius: 20px;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(14, 165, 233, 0.3);
+    }
+
+    .headline-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .main-title {
+      font-size: 42px;
+      font-weight: 900;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .highlight-cyan {
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 30px rgba(56, 189, 248, 0.5);
+    }
+
+    .sub-tags {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .pill-green { background: #166534; color: #4ade80; border: 1px solid #22c55e; }
+    .pill-blue { background: #1e3a8a; color: #93c5fd; border: 1px solid #60a5fa; }
+    .pill-purple { background: #581c87; color: #e9d5ff; border: 1px solid #a855f7; }
+
+    .action-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+    .btn-github {
+      background: #ffffff;
+      color: #0f172a;
+      font-size: 24px;
+      font-weight: 900;
+      padding: 12px 28px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(255, 255, 255, 0.35);
+    }
+    .free-label {
+      color: #38bdf8;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="split-container">
+    <!-- Left: Boring Stock Screen -->
+    <div class="side-before">
+      <img src="../reel/assets/real-ide-boring-white.png" alt="Boring Stock Screen">
+      <div class="badge-before">❌ BORING IDE</div>
+    </div>
+
+    <!-- Right: Cyberpunk Iron Man Screen -->
+    <div class="side-after">
+      <img src="../reel/assets/real-ide-ironman.png" alt="Cyberpunk Setup">
+      <div class="badge-after">🔥 CYBERPUNK IDE</div>
+    </div>
+
+    <!-- Glowing Electric Divider -->
+    <div class="divider-line"></div>
+
+    <!-- Bottom High-Impact Viral Banner -->
+    <div class="headline-bar">
+      <div class="headline-text">
+        <div class="main-title">
+          <span>Google Antigravity</span>
+          <span class="highlight-cyan">Wallpaper Engine</span>
+        </div>
+        <div class="sub-tags">
+          <span class="pill pill-green">⚡ 1-Click Install</span>
+          <span class="pill pill-blue">🌓 Auto Frosted Glass</span>
+          <span class="pill pill-purple">🚀 0% CPU Lag</span>
+        </div>
+      </div>
+
+      <div class="action-badge">
+        <div class="btn-github">
+          <span>⭐ 100% Free on GitHub</span>
+        </div>
+        <div class="free-label">v1.1.0 Latest Release</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
